@@ -28,6 +28,8 @@ import com.example.data.model.TransactionType
 import com.example.ui.utils.CurrencyUtils
 import com.example.ui.utils.IconsHelper
 import com.example.ui.viewmodels.MainViewModel
+import com.example.ui.theme.GlassTheme
+import com.example.ui.theme.GlassTheme.glassyCard
 import java.util.Calendar
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -56,11 +58,11 @@ fun TransactionsScreen(viewModel: MainViewModel, onEditTransaction: (com.example
     val isSystemDark = isSystemInDarkTheme()
     val isDark = when(themeMode) {
         1 -> false
-        2 -> true
+        2, 3 -> true
         else -> isSystemDark
     }
 
-    val bgColor = if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
+    val bgColor = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
     val floatBgColor = if (isDark) Color(0xCC374151) else Color(0xCCFFFFFF)
     val floatBorderColor = if (isDark) Color(0xFF4B5563) else Color(0xFFE5E7EB)
 
@@ -101,11 +103,18 @@ fun TransactionsScreen(viewModel: MainViewModel, onEditTransaction: (com.example
             Spacer(modifier = Modifier.height(8.dp))
             
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(if(isDark) Color(0xFF1F2937) else Color.White, RoundedCornerShape(12.dp))
-                    .border(1.dp, floatBorderColor, RoundedCornerShape(12.dp))
-                    .padding(4.dp),
+                modifier = if (themeMode == 3) {
+                    Modifier
+                        .fillMaxWidth()
+                        .glassyCard(RoundedCornerShape(12.dp))
+                        .padding(4.dp)
+                } else {
+                    Modifier
+                        .fillMaxWidth()
+                        .background(if(isDark) Color(0xFF1F2937) else Color.White, RoundedCornerShape(12.dp))
+                        .border(1.dp, floatBorderColor, RoundedCornerShape(12.dp))
+                        .padding(4.dp)
+                },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 var accMenuExpanded by remember { mutableStateOf(false) }
@@ -218,16 +227,23 @@ fun TransactionsScreen(viewModel: MainViewModel, onEditTransaction: (com.example
                                 }
                             }
                             item {
-                                val cardBg = if (isDark) Color(0xFF1F2937) else Color.White
-                                val borderColor = if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
+                                val cardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
+                                val borderColor = if (themeMode == 3) Color(0x1AE5E7EB) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
                                 
                                 Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 16.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .background(cardBg)
-                                        .border(1.dp, borderColor, RoundedCornerShape(12.dp))
+                                    modifier = if (themeMode == 3) {
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(bottom = 16.dp)
+                                            .glassyCard(RoundedCornerShape(12.dp))
+                                    } else {
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(bottom = 16.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(cardBg)
+                                            .border(1.dp, borderColor, RoundedCornerShape(12.dp))
+                                    }
                                 ) {
                                     txs.forEachIndexed { index, tx ->
                                         val cat = categories.find { it.id == tx.categoryId }

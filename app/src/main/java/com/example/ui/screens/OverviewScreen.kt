@@ -28,6 +28,8 @@ import com.example.data.model.TransactionType
 import com.example.ui.utils.CurrencyUtils
 import com.example.ui.utils.IconsHelper
 import com.example.ui.viewmodels.MainViewModel
+import com.example.ui.theme.GlassTheme
+import com.example.ui.theme.GlassTheme.glassyCard
 
 @Composable
 fun OverviewScreen(viewModel: MainViewModel, navController: NavController) {
@@ -46,7 +48,7 @@ fun OverviewScreen(viewModel: MainViewModel, navController: NavController) {
     val isSystemDark = isSystemInDarkTheme()
     val isDark = when(themeMode) {
         1 -> false
-        2 -> true
+        2, 3 -> true
         else -> isSystemDark
     }
 
@@ -54,7 +56,7 @@ fun OverviewScreen(viewModel: MainViewModel, navController: NavController) {
     val expense = transactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount * it.exchangeRate }
     val balance = income - expense
 
-    val bgColor = if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
+    val bgColor = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
     
     Column(
         modifier = Modifier
@@ -73,7 +75,7 @@ fun OverviewScreen(viewModel: MainViewModel, navController: NavController) {
         ) {
             // 2.2. Картка Балансу (Balance Card)
             item {
-                BalanceCard(balance, incognito, isDark, "UAH")
+                BalanceCard(balance, incognito, isDark, "UAH", themeMode)
             }
             
             // 2.3. Списки Транзакцій: Витрати
@@ -90,7 +92,8 @@ fun OverviewScreen(viewModel: MainViewModel, navController: NavController) {
                         incognito = incognito,
                         navController = navController,
                         viewModel = viewModel,
-                        isDark = isDark
+                        isDark = isDark,
+                        themeMode = themeMode
                     )
                 }
             }
@@ -109,7 +112,8 @@ fun OverviewScreen(viewModel: MainViewModel, navController: NavController) {
                         incognito = incognito,
                         navController = navController,
                         viewModel = viewModel,
-                        isDark = isDark
+                        isDark = isDark,
+                        themeMode = themeMode
                     )
                 }
             }
@@ -119,7 +123,8 @@ fun OverviewScreen(viewModel: MainViewModel, navController: NavController) {
 
 @Composable
 fun CustomMonthYearSelector(viewModel: MainViewModel, month: Int, year: Int, isDark: Boolean) {
-    val cardBg = if (isDark) Color(0xFF1F2937) else Color.White
+    val themeMode by viewModel.themeMode.collectAsState()
+    val cardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
     val textColor = if (isDark) Color(0xFFD1D5DB) else Color(0xFF4B5563)
     val iconColor = if (isDark) Color(0xFF9CA3AF) else Color(0xFF4B5563)
     val rippleColor = if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6)
@@ -128,10 +133,10 @@ fun CustomMonthYearSelector(viewModel: MainViewModel, month: Int, year: Int, isD
     val monthName = monthNames.getOrNull(month) ?: ""
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = if (themeMode == 3) Modifier.fillMaxWidth().glassyCard(RoundedCornerShape(12.dp)) else Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = cardBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (themeMode == 3) 0.dp else 2.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(8.dp),
@@ -163,8 +168,18 @@ fun CustomMonthYearSelector(viewModel: MainViewModel, month: Int, year: Int, isD
 }
 
 @Composable
-fun BalanceCard(balance: Double, incognito: Boolean, isDark: Boolean, currency: String = "") {
-    val cardBg = if (isDark) Color(0xFF1F2937) else Color.White
+fun BalanceCard(
+    balance: Double,
+    incognito: Boolean,
+    isDark: Boolean,
+    currency: String = "",
+    themeMode: Int = 0,
+    modifier: Modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp, vertical = 8.dp)
+        .padding(bottom = 16.dp)
+) {
+    val cardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
     
     val balanceColor = if (balance >= 0) {
         if (isDark) Color(0xFF60A5FA) else Color(0xFF2563EB)
@@ -176,13 +191,10 @@ fun BalanceCard(balance: Double, incognito: Boolean, isDark: Boolean, currency: 
     val absoluteBalance = Math.abs(balance)
     
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .padding(bottom = 16.dp),
+        modifier = if (themeMode == 3) modifier.glassyCard(RoundedCornerShape(16.dp)) else modifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = cardBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (themeMode == 3) 0.dp else 2.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -212,11 +224,12 @@ fun CategoryListCard(
     incognito: Boolean,
     navController: NavController,
     viewModel: MainViewModel,
-    isDark: Boolean
+    isDark: Boolean,
+    themeMode: Int = 0
 ) {
-    val cardBg = if (isDark) Color(0xFF1F2937) else Color.White
-    val headerBg = if (isDark) Color(0x80374151) else Color(0x80F9FAFB)
-    val dividerColor = if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
+    val cardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
+    val headerBg = if (themeMode == 3) Color(0x1F374151) else if (isDark) Color(0x80374151) else Color(0x80F9FAFB)
+    val dividerColor = if (themeMode == 3) Color(0x1AE5E7EB) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
     
     val totalSpent = transactions.filter { it.type == (if (isIncome) TransactionType.INCOME else TransactionType.EXPENSE) }.sumOf { it.amount * it.exchangeRate }
     val totalBudget = categories.sumOf { it.getLimitForMonth(month, year) }
@@ -228,14 +241,24 @@ fun CategoryListCard(
     val headerIconColor = if (isIncome) Color(0xFF10B981) else Color(0xFFEF4444)
     val headerIcon = if (isIncome) Icons.Filled.TrendingUp else Icons.Filled.TrendingDown
     
-    Card(
-        modifier = Modifier
+    val baseModifier = if (themeMode == 3) {
+        Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 24.dp),
+            .padding(bottom = 24.dp)
+            .glassyCard(RoundedCornerShape(16.dp))
+    } else {
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 24.dp)
+    }
+
+    Card(
+        modifier = baseModifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = cardBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (themeMode == 3) 0.dp else 2.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // Header

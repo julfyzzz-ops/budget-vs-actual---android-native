@@ -42,6 +42,8 @@ import com.example.data.model.TransactionType
 import com.example.ui.utils.CurrencyUtils
 import com.example.ui.utils.IconsHelper
 import com.example.ui.viewmodels.MainViewModel
+import com.example.ui.theme.GlassTheme
+import com.example.ui.theme.GlassTheme.glassyCard
 
 @Composable
 fun BudgetScreen(viewModel: MainViewModel) {
@@ -76,7 +78,7 @@ fun BudgetScreen(viewModel: MainViewModel) {
     val plnExpense = categories.filter { it.type == TransactionType.EXPENSE }.sumOf { it.getLimitForMonth(month, year) }
     val projectedBalance = plnIncome - plnExpense
 
-    val bgColor = if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
+    val bgColor = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
 
     Column(modifier = Modifier.fillMaxSize().background(bgColor)) {
         Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth()) {
@@ -87,14 +89,18 @@ fun BudgetScreen(viewModel: MainViewModel) {
 
         LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
             item {
-                val cardBg = if (isDark) Color(0xFF1F2937) else Color.White
-                val borderColor = if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
+                val cardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
+                val borderColor = if (themeMode == 3) Color(0x1AE5E7EB) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
                 
                 Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp),
+                    modifier = if (themeMode == 3) {
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp).glassyCard(RoundedCornerShape(16.dp))
+                    } else {
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp)
+                    },
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = cardBg),
-                    border = BorderStroke(1.dp, borderColor)
+                    border = if (themeMode == 3) null else BorderStroke(1.dp, borderColor)
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -138,6 +144,7 @@ fun BudgetScreen(viewModel: MainViewModel) {
                         viewModel = viewModel,
                         incognito = incognito,
                         isDark = isDark,
+                        themeMode = themeMode,
                         onEditClick = { cat -> categoryToEdit = cat; showAddCategorySheet = true }
                     )
                 }
@@ -155,6 +162,7 @@ fun BudgetScreen(viewModel: MainViewModel) {
                         viewModel = viewModel,
                         incognito = incognito,
                         isDark = isDark,
+                        themeMode = themeMode,
                         onEditClick = { cat -> categoryToEdit = cat; showAddCategorySheet = true }
                     )
                 }
@@ -162,17 +170,24 @@ fun BudgetScreen(viewModel: MainViewModel) {
             
             item {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(if (isDark) Color(0xFF1F2937) else Color.White)
-                        .clickable { 
-                            categoryToEdit = null
-                            showAddCategorySheet = true 
-                        }
-                        .height(64.dp)
-                        .padding(horizontal = 16.dp),
+                    modifier = if (themeMode == 3) {
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .glassyCard(RoundedCornerShape(16.dp))
+                    } else {
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(if (isDark) Color(0xFF1F2937) else Color.White)
+                    }
+                    .clickable { 
+                        categoryToEdit = null
+                        showAddCategorySheet = true 
+                    }
+                    .height(64.dp)
+                    .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -209,23 +224,31 @@ fun BudgetGroup(
     viewModel: MainViewModel,
     incognito: Boolean,
     isDark: Boolean,
+    themeMode: Int = 0,
     onEditClick: (Category) -> Unit
 ) {
-    val cardBg = if (isDark) Color(0xFF1F2937) else Color.White
-    val borderColor = if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
+    val cardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
+    val borderColor = if (themeMode == 3) Color(0x1AE5E7EB) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
     
+    val baseModifier = if (themeMode == 3) {
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 16.dp).glassyCard(RoundedCornerShape(16.dp))
+    } else {
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 16.dp)
+    }
+
     Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 16.dp),
+        modifier = baseModifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = cardBg),
-        border = BorderStroke(1.dp, borderColor)
+        border = if (themeMode == 3) null else BorderStroke(1.dp, borderColor)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // Header
+            val headerBg = if (themeMode == 3) Color(0x1F374151) else if (isDark) Color(0x80374151) else Color(0x80F9FAFB)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(if (isDark) Color(0x80374151) else Color(0x80F9FAFB))
+                    .background(headerBg)
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically

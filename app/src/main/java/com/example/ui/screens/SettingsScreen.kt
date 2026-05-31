@@ -215,8 +215,8 @@ fun AppearanceTabNew(themeMode: Int, incognitoMode: Boolean, viewModel: MainView
             Text("Тема додатку", fontSize = 14.sp, color = subtleText, fontWeight = FontWeight.SemiBold)
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            listOf(1 to "Світла", 2 to "Темна").forEach { (v, label) ->
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            listOf(1 to "Світла", 2 to "Темна", 3 to "Android 17").forEach { (v, label) ->
                 val isActive = themeMode == v
                 val bg = if (isActive) activeBg else inputBg
                 val brd = if (isActive) activeBorder else borderColor
@@ -232,9 +232,14 @@ fun AppearanceTabNew(themeMode: Int, incognitoMode: Boolean, viewModel: MainView
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(if (v == 1) Icons.Filled.WbSunny else Icons.Filled.DarkMode, contentDescription = null, tint = txt, modifier = Modifier.size(28.dp))
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(label, color = txt, fontWeight = FontWeight.SemiBold)
+                        val icon = when (v) {
+                            1 -> Icons.Filled.WbSunny
+                            2 -> Icons.Filled.DarkMode
+                            else -> Icons.Filled.AutoAwesome
+                        }
+                        Icon(icon, contentDescription = null, tint = txt, modifier = Modifier.size(24.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(label, color = txt, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, textAlign = TextAlign.Center)
                     }
                 }
             }

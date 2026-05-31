@@ -1,6 +1,7 @@
 package com.example.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.*
 import com.example.ui.screens.*
 import com.example.ui.viewmodels.MainViewModel
+
+import com.example.ui.theme.GlassTheme
 
 sealed class Screen(val route: String, val title: String, val icon: @Composable () -> Unit) {
     object Overview : Screen("overview", "Огляд", { Icon(Icons.Filled.GridView, contentDescription = "Огляд") })
@@ -52,7 +55,7 @@ fun BudgetApp(viewModel: MainViewModel) {
     val isSystemDark = isSystemInDarkTheme()
     val isDark = when(themeMode) {
         1 -> false
-        2 -> true
+        2, 3 -> true
         else -> isSystemDark
     }
     
@@ -62,12 +65,20 @@ fun BudgetApp(viewModel: MainViewModel) {
             properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
         ) {
             Surface(
-                modifier = Modifier
-                    .fillMaxWidth(0.92f)
-                    .wrapContentHeight()
-                    .clip(RoundedCornerShape(24.dp)),
-                color = if (isDark) Color(0xFF1F2937) else Color.White,
-                tonalElevation = 6.dp
+                modifier = if (themeMode == 3) {
+                    Modifier
+                        .fillMaxWidth(0.92f)
+                        .wrapContentHeight()
+                        .clip(RoundedCornerShape(24.dp))
+                        .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(24.dp))
+                } else {
+                    Modifier
+                        .fillMaxWidth(0.92f)
+                        .wrapContentHeight()
+                        .clip(RoundedCornerShape(24.dp))
+                },
+                color = if (themeMode == 3) Color(0xE60B0F19) else if (isDark) Color(0xFF1F2937) else Color.White,
+                tonalElevation = if (themeMode == 3) 0.dp else 6.dp
             ) {
                 SettingsScreen(viewModel, isExperimental = false, onDismiss = { showSettingsDialog = false })
             }
@@ -80,12 +91,20 @@ fun BudgetApp(viewModel: MainViewModel) {
             properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
         ) {
             Surface(
-                modifier = Modifier
-                    .fillMaxWidth(0.92f)
-                    .wrapContentHeight()
-                    .clip(RoundedCornerShape(24.dp)),
-                color = if (isDark) Color(0xFF1F2937) else Color.White,
-                tonalElevation = 6.dp
+                modifier = if (themeMode == 3) {
+                    Modifier
+                        .fillMaxWidth(0.92f)
+                        .wrapContentHeight()
+                        .clip(RoundedCornerShape(24.dp))
+                        .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(24.dp))
+                } else {
+                    Modifier
+                        .fillMaxWidth(0.92f)
+                        .wrapContentHeight()
+                        .clip(RoundedCornerShape(24.dp))
+                },
+                color = if (themeMode == 3) Color(0xE60B0F19) else if (isDark) Color(0xFF1F2937) else Color.White,
+                tonalElevation = if (themeMode == 3) 0.dp else 6.dp
             ) {
                 ExperimentalSettingsScreen(viewModel, onDismiss = { showExperimentalSettingsDialog = false })
             }
@@ -104,58 +123,72 @@ fun BudgetApp(viewModel: MainViewModel) {
         )
     }
     
-    Scaffold(
-        bottomBar = {
-            NavigationBar {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
-                
-                items.forEach { screen ->
-                    NavigationBarItem(
-                        icon = screen.icon,
-                        label = { Text(screen.title) },
-                        selected = currentRoute == screen.route,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
+    val appContent = @Composable {
+        Scaffold(
+            containerColor = if (themeMode == 3) Color.Transparent else MaterialTheme.colorScheme.background,
+            bottomBar = {
+                NavigationBar(
+                    containerColor = if (themeMode == 3) Color(0x220B0F19) else MaterialTheme.colorScheme.surface,
+                    tonalElevation = if (themeMode == 3) 0.dp else 3.dp
+                ) {
+                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                    val currentRoute = navBackStackEntry?.destination?.route
+                    
+                    items.forEach { screen ->
+                        NavigationBarItem(
+                            icon = screen.icon,
+                            label = { Text(screen.title) },
+                            selected = currentRoute == screen.route,
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
+                }
+            },
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = { showAddTransactionSheet = true },
+                    containerColor = if (themeMode == 3) Color(0xFF10B981) else MaterialTheme.colorScheme.primary,
+                    contentColor = if (themeMode == 3) Color.White else MaterialTheme.colorScheme.onPrimary,
+                    shape = androidx.compose.foundation.shape.CircleShape
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = "Додати транзакцію")
                 }
             }
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddTransactionSheet = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = androidx.compose.foundation.shape.CircleShape
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Додати транзакцію")
+        ) { innerPadding ->
+            NavHost(navController = navController, startDestination = Screen.Overview.route, modifier = Modifier.padding(innerPadding)) {
+                composable(Screen.Overview.route) { 
+                    OverviewScreen(viewModel, navController) 
+                }
+                composable(Screen.Transactions.route) { 
+                    TransactionsScreen(viewModel, onEditTransaction = {
+                        transactionToEdit = it
+                        showAddTransactionSheet = true
+                    }) 
+                }
+                composable(Screen.Accounts.route) { 
+                    AccountsScreen(
+                        viewModel = viewModel, 
+                        navController = navController, 
+                        onOpenSettings = { showSettingsDialog = true },
+                        onOpenExperimentalSettings = { showExperimentalSettingsDialog = true }
+                    ) 
+                }
+                composable(Screen.Budget.route) { BudgetScreen(viewModel) }
             }
         }
-    ) { innerPadding ->
-        NavHost(navController = navController, startDestination = Screen.Overview.route, modifier = Modifier.padding(innerPadding)) {
-            composable(Screen.Overview.route) { 
-                OverviewScreen(viewModel, navController) 
-            }
-            composable(Screen.Transactions.route) { 
-                TransactionsScreen(viewModel, onEditTransaction = {
-                    transactionToEdit = it
-                    showAddTransactionSheet = true
-                }) 
-            }
-            composable(Screen.Accounts.route) { 
-                AccountsScreen(
-                    viewModel = viewModel, 
-                    navController = navController, 
-                    onOpenSettings = { showSettingsDialog = true },
-                    onOpenExperimentalSettings = { showExperimentalSettingsDialog = true }
-                ) 
-            }
-            composable(Screen.Budget.route) { BudgetScreen(viewModel) }
+    }
+
+    if (themeMode == 3) {
+        GlassTheme.GlassBackground {
+            appContent()
         }
+    } else {
+        appContent()
     }
 }

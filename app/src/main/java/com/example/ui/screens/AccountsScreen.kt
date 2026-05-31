@@ -50,6 +50,8 @@ import com.example.data.model.Account
 import com.example.ui.utils.CurrencyUtils
 import com.example.ui.utils.IconsHelper
 import com.example.ui.viewmodels.MainViewModel
+import com.example.ui.theme.GlassTheme
+import com.example.ui.theme.GlassTheme.glassyCard
 
 @Composable
 fun AccountsScreen(
@@ -89,21 +91,21 @@ fun AccountsScreen(
     }
 
     val totalCapital = accounts.sumOf { getDynamicBalance(it) * it.exchangeRate }
-    val bgColor = if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
+    val bgColor = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
 
     Column(modifier = Modifier.fillMaxSize().background(bgColor)) {
         // Top Card Selector
-        val topCardBg = if (isDark) Color(0xFF1F2937) else Color.White
+        val topCardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
         Box(
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .fillMaxWidth()
         ) {
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = if (themeMode == 3) Modifier.fillMaxWidth().glassyCard(RoundedCornerShape(12.dp)) else Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = topCardBg),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = if (themeMode == 3) 0.dp else 2.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -162,6 +164,8 @@ fun AccountsScreen(
                 }
             }
         }
+        
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Main List
         LazyColumn(
@@ -170,7 +174,17 @@ fun AccountsScreen(
         ) {
             // Total Capital
             item {
-                BalanceCard(totalCapital, incognito, isDark, "UAH")
+                BalanceCard(
+                    balance = totalCapital,
+                    incognito = incognito,
+                    isDark = isDark,
+                    currency = "UAH",
+                    themeMode = themeMode,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 24.dp)
+                )
             }
 
             val currentAccs = accounts.filter { it.type == AccountType.CURRENT }.sortedBy { it.orderIndex }
@@ -191,6 +205,7 @@ fun AccountsScreen(
                         incognito = incognito,
                         showHiddenAccounts = showHiddenAccounts,
                         isDark = isDark,
+                        themeMode = themeMode,
                         navController = navController,
                         onEditClick = { acc -> accountToEdit = acc; showAddAccountSheet = true },
                         getDynamicBalance = { getDynamicBalance(it) }
@@ -212,6 +227,7 @@ fun AccountsScreen(
                         incognito = incognito,
                         showHiddenAccounts = showHiddenAccounts,
                         isDark = isDark,
+                        themeMode = themeMode,
                         navController = navController,
                         onEditClick = { acc -> accountToEdit = acc; showAddAccountSheet = true },
                         getDynamicBalance = { getDynamicBalance(it) }
@@ -233,6 +249,7 @@ fun AccountsScreen(
                         incognito = incognito,
                         showHiddenAccounts = showHiddenAccounts,
                         isDark = isDark,
+                        themeMode = themeMode,
                         navController = navController,
                         onEditClick = { acc -> accountToEdit = acc; showAddAccountSheet = true },
                         getDynamicBalance = { getDynamicBalance(it) }
@@ -242,17 +259,24 @@ fun AccountsScreen(
 
             item {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(if (isDark) Color(0xFF1F2937) else Color.White)
-                        .clickable { 
-                            accountToEdit = null
-                            showAddAccountSheet = true 
-                        }
-                        .height(64.dp)
-                        .padding(horizontal = 16.dp),
+                    modifier = if (themeMode == 3) {
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .glassyCard(RoundedCornerShape(16.dp))
+                    } else {
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(if (isDark) Color(0xFF1F2937) else Color.White)
+                    }
+                    .clickable { 
+                        accountToEdit = null
+                        showAddAccountSheet = true 
+                    }
+                    .height(64.dp)
+                    .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -276,14 +300,21 @@ fun AccountsScreen(
             item {
                 val isVisible = showHiddenAccounts
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(if (isDark) Color(0xFF1F2937) else Color.White)
-                        .clickable { showHiddenAccounts = !showHiddenAccounts }
-                        .height(64.dp)
-                        .padding(horizontal = 16.dp),
+                    modifier = if (themeMode == 3) {
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .glassyCard(RoundedCornerShape(16.dp))
+                    } else {
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(if (isDark) Color(0xFF1F2937) else Color.White)
+                    }
+                    .clickable { showHiddenAccounts = !showHiddenAccounts }
+                    .height(64.dp)
+                    .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -326,27 +357,38 @@ fun AccountGroup(
     incognito: Boolean,
     showHiddenAccounts: Boolean,
     isDark: Boolean,
+    themeMode: Int = 0,
     navController: NavController,
     onEditClick: (Account) -> Unit,
     getDynamicBalance: (Account) -> Double
 ) {
     if (accounts.isEmpty()) return
 
-    val cardBg = if (isDark) Color(0xFF1F2937) else Color.White
-    val borderColor = if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
+    val cardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
+    val borderColor = if (themeMode == 3) Color(0x1AE5E7EB) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
 
-    Card(
-        modifier = Modifier
+    val baseModifier = if (themeMode == 3) {
+        Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 24.dp),
+            .padding(bottom = 16.dp)
+            .glassyCard(RoundedCornerShape(16.dp))
+    } else {
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp)
+    }
+
+    Card(
+        modifier = baseModifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = cardBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (themeMode == 3) 0.dp else 2.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // Header
-            val headerBg = if (isDark) Color(0x80374151) else Color(0x80F9FAFB)
+            val headerBg = if (themeMode == 3) Color(0x1F374151) else if (isDark) Color(0x80374151) else Color(0x80F9FAFB)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

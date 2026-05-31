@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
             
             val darkTheme = when (themeMode) {
                 1 -> false
-                2 -> true
+                2, 3 -> true
                 else -> isSystemInDarkTheme()
             }
             
