@@ -217,31 +217,51 @@ fun AppearanceTabNew(themeMode: Int, incognitoMode: Boolean, viewModel: MainView
             Text("Тема додатку", fontSize = 14.sp, color = subtleText, fontWeight = FontWeight.SemiBold)
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            listOf(1 to "Світла", 2 to "Темна", 3 to "Android 17").forEach { (v, label) ->
-                val isActive = themeMode == v
+        Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            val themes = listOf(
+                Triple("Світла тема", Icons.Filled.WbSunny, 1),
+                Triple("Темна тема", Icons.Filled.DarkMode, 2),
+                Triple("Android 17 Світла (Glass)", Icons.Filled.AutoAwesome, 3),
+                Triple("Android 17 Темна (Glass)", Icons.Filled.AutoAwesome, 4)
+            )
+            
+            themes.forEach { (label, icon, value) ->
+                val isActive = themeMode == value
                 val bg = if (isActive) activeBg else inputBg
-                val brd = if (isActive) activeBorder else borderColor
-                val txt = if (isActive) activeText else subtleText
-                Box(
+                val brd = if (isActive) activeBorder else Color.Transparent
+                val txt = if (isActive) activeText else textColor
+                
+                Row(
                     modifier = Modifier
-                        .weight(1f)
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(16.dp))
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
                         .background(bg)
-                        .border(2.dp, brd, RoundedCornerShape(16.dp))
-                        .clickable { viewModel.setThemeMode(v) },
-                    contentAlignment = Alignment.Center
+                        .border(if (isActive) 2.dp else 0.dp, brd, RoundedCornerShape(12.dp))
+                        .clickable { viewModel.setThemeMode(value) }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        val icon = when (v) {
-                            1 -> Icons.Filled.WbSunny
-                            2 -> Icons.Filled.DarkMode
-                            else -> Icons.Filled.AutoAwesome
-                        }
-                        Icon(icon, contentDescription = null, tint = txt, modifier = Modifier.size(24.dp))
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(label, color = txt, fontWeight = FontWeight.SemiBold, fontSize = 11.sp, textAlign = TextAlign.Center)
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .background(
+                                if (themeMode == 3 || themeMode == 4) {
+                                    Color(0x22FFFFFF)
+                                } else if (isDark) {
+                                    Color(0xFF374151)
+                                } else {
+                                    Color(0xFFE5E7EB)
+                                },
+                                RoundedCornerShape(8.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(icon, contentDescription = null, tint = txt, modifier = Modifier.size(18.dp))
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(label, color = txt, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                    if (isActive) {
+                        Icon(Icons.Filled.Check, contentDescription = null, tint = activeText, modifier = Modifier.size(20.dp))
                     }
                 }
             }

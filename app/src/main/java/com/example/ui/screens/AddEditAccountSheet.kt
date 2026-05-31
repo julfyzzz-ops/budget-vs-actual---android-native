@@ -71,17 +71,19 @@ fun AddEditAccountSheet(
     val isDark = when(themeMode) {
         1 -> false
         2 -> true
-        3 -> isSystemDark
+        3 -> false // Android 17 Light Glass
+        4 -> true  // Android 17 Dark Glass
         else -> isSystemDark
     }
+    val isGlassMode = themeMode == 3 || themeMode == 4
     
     val sheetBg = if (isDark) Color(0xFF1F2937) else Color.White
-    val inputBg = if (themeMode == 3) Color(0x22111827) else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
+    val inputBg = if (isGlassMode) Color(0x22111827) else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
     val inputTextColor = if (isDark) Color.White else Color(0xFF111827)
     val labelColor = if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)
 
     val textFieldColors = OutlinedTextFieldDefaults.colors(
-        unfocusedBorderColor = if (themeMode == 3) Color(0x33FFFFFF) else Color.Transparent,
+        unfocusedBorderColor = if (isGlassMode) Color(0x33FFFFFF) else Color.Transparent,
         focusedBorderColor = MaterialTheme.colorScheme.primary,
         unfocusedContainerColor = inputBg,
         focusedContainerColor = inputBg,
@@ -106,9 +108,9 @@ fun AddEditAccountSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissInfo,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = if (themeMode == 3) Color.Transparent else sheetBg
+        containerColor = if (isGlassMode) Color.Transparent else sheetBg
     ) {
-        val sheetModifier = if (themeMode == 3) {
+        val sheetModifier = if (isGlassMode) {
             Modifier
                 .fillMaxWidth()
                 .glassyCard(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
@@ -139,7 +141,7 @@ fun AddEditAccountSheet(
                     onClick = onDismissInfo,
                     modifier = Modifier
                         .size(32.dp)
-                        .background(if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6), CircleShape)
+                        .background(if (isGlassMode) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6), CircleShape)
                 ) {
                     Icon(Icons.Filled.Close, contentDescription = "Закрити", modifier = Modifier.size(20.dp), tint = labelColor)
                 }
@@ -179,7 +181,7 @@ fun AddEditAccountSheet(
                 ExposedDropdownMenu(
                     expanded = typeExpanded,
                     onDismissRequest = { typeExpanded = false },
-                    modifier = if (themeMode == 3) {
+                    modifier = if (isGlassMode) {
                         Modifier.glassyCard(RoundedCornerShape(12.dp))
                     } else {
                         Modifier.background(inputBg)
@@ -232,7 +234,7 @@ fun AddEditAccountSheet(
                         ExposedDropdownMenu(
                             expanded = currencyExpanded,
                             onDismissRequest = { currencyExpanded = false },
-                            modifier = if (themeMode == 3) {
+                            modifier = if (isGlassMode) {
                                 Modifier.glassyCard(RoundedCornerShape(12.dp))
                             } else {
                                 Modifier.background(inputBg)
@@ -287,12 +289,12 @@ fun AddEditAccountSheet(
                                 if (isSelected) {
                                     MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
                                 } else {
-                                    if (themeMode == 3) Color(0x11FFFFFF) else inputBg
+                                    if (isGlassMode) Color(0x11FFFFFF) else inputBg
                                 }
                             )
                             .border(
-                                width = if (isSelected) 2.dp else if (themeMode == 3) 1.dp else 0.dp,
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else if (themeMode == 3) Color(0x33FFFFFF) else Color.Transparent,
+                                width = if (isSelected) 2.dp else if (isGlassMode) 1.dp else 0.dp,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else if (isGlassMode) Color(0x33FFFFFF) else Color.Transparent,
                                 shape = RoundedCornerShape(12.dp)
                             )
                             .clickable { selectedIcon = iconName },
@@ -348,7 +350,7 @@ fun AddEditAccountSheet(
             
             // Hidden toggle
             Row(
-                modifier = if (themeMode == 3) {
+                modifier = if (isGlassMode) {
                     Modifier
                         .fillMaxWidth()
                         .glassyCard(RoundedCornerShape(12.dp))

@@ -142,19 +142,9 @@ object GlassTheme {
         val activeClipModifier = this.clip(shape)
 
         // Android 12+ (SDK >= 31) live render backdrop blur effect fallback check
-        val glassModifier = if (sdkVersion >= 31) {
-            activeClipModifier
-                .blur(radius = 25.dp) // Frosted glass blur effect (20.dp - 30.dp)
-                .background(tintColor, shape)
-        } else {
-            // Android 11 and lower fallback check (90% alpha solid adaptive color sheet for premium visual accentuation)
-            val fallbackSurfaceColor = if (actualIsDark) {
-                Color(0xE6111827) // Solid M3 surface replacement
-            } else {
-                Color(0xFAFFFFFF) // Solid light surface replacement
-            }
-            activeClipModifier.background(fallbackSurfaceColor, shape)
-        }
+        // To keep text perfectly legible ("над склом" - crystal clear), we do not blur the card's child views.
+        // The card backdrop itself is pre-blurred since it is laid over the deep animating neon cloud "GlassBackground".
+        val glassModifier = activeClipModifier.background(tintColor, shape)
 
         glassModifier.border(borderWidth, borderBrush, shape)
     }

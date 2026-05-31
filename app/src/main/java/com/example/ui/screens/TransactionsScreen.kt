@@ -59,11 +59,13 @@ fun TransactionsScreen(viewModel: MainViewModel, onEditTransaction: (com.example
     val isDark = when(themeMode) {
         1 -> false
         2 -> true
-        3 -> isSystemDark
+        3 -> false // Android 17 Light Glass
+        4 -> true  // Android 17 Dark Glass
         else -> isSystemDark
     }
 
-    val bgColor = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
+    val isGlassMode = themeMode == 3 || themeMode == 4
+    val bgColor = if (isGlassMode) Color.Transparent else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
     val floatBgColor = if (isDark) Color(0xCC374151) else Color(0xCCFFFFFF)
     val floatBorderColor = if (isDark) Color(0xFF4B5563) else Color(0xFFE5E7EB)
 
@@ -104,7 +106,7 @@ fun TransactionsScreen(viewModel: MainViewModel, onEditTransaction: (com.example
             Spacer(modifier = Modifier.height(8.dp))
             
             Row(
-                modifier = if (themeMode == 3) {
+                modifier = if (isGlassMode) {
                     Modifier
                         .fillMaxWidth()
                         .glassyCard(RoundedCornerShape(12.dp))
@@ -228,11 +230,11 @@ fun TransactionsScreen(viewModel: MainViewModel, onEditTransaction: (com.example
                                 }
                             }
                             item {
-                                val cardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
-                                val borderColor = if (themeMode == 3) Color(0x1AE5E7EB) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
+                                val cardBg = if (isGlassMode) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
+                                val borderColor = if (isGlassMode) Color(0x1AE5E7EB) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
                                 
                                 Column(
-                                    modifier = if (themeMode == 3) {
+                                    modifier = if (isGlassMode) {
                                         Modifier
                                             .fillMaxWidth()
                                             .padding(bottom = 16.dp)

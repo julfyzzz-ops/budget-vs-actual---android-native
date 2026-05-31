@@ -76,16 +76,18 @@ fun AddEditCategorySheet(
     val isDark = when(themeMode) {
         1 -> false
         2 -> true
-        3 -> isSystemDark
+        3 -> false // Android 17 Light Glass
+        4 -> true  // Android 17 Dark Glass
         else -> isSystemDark
     }
+    val isGlassMode = themeMode == 3 || themeMode == 4
 
     ModalBottomSheet(
         onDismissRequest = onDismissInfo,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
+        containerColor = if (isGlassMode) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
     ) {
-        val sheetModifier = if (themeMode == 3) {
+        val sheetModifier = if (isGlassMode) {
             Modifier
                 .fillMaxWidth()
                 .glassyCard(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
@@ -116,7 +118,7 @@ fun AddEditCategorySheet(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6))
+                        .background(if (isGlassMode) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6))
                         .clickable(onClick = onDismissInfo),
                     contentAlignment = Alignment.Center
                 ) {
@@ -131,7 +133,7 @@ fun AddEditCategorySheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(44.dp)
-                    .background(if (themeMode == 3) Color(0x22111827) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6), RoundedCornerShape(12.dp))
+                    .background(if (isGlassMode) Color(0x22111827) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6), RoundedCornerShape(12.dp))
                     .padding(4.dp)
             ) {
                 val isExpense = type == TransactionType.EXPENSE
@@ -142,7 +144,7 @@ fun AddEditCategorySheet(
                         .clip(RoundedCornerShape(8.dp))
                         .let { 
                             if (isExpense) {
-                                if (themeMode == 3) {
+                                if (isGlassMode) {
                                     it.background(Color(0x33FFFFFF))
                                 } else {
                                     it.background(if (isDark) Color(0xFF1F2937) else Color.White).shadow(1.dp, RoundedCornerShape(8.dp))
@@ -161,7 +163,7 @@ fun AddEditCategorySheet(
                         .clip(RoundedCornerShape(8.dp))
                         .let { 
                             if (!isExpense) {
-                                if (themeMode == 3) {
+                                if (isGlassMode) {
                                     it.background(Color(0x33FFFFFF))
                                 } else {
                                     it.background(if (isDark) Color(0xFF1F2937) else Color.White).shadow(1.dp, RoundedCornerShape(8.dp))
@@ -184,11 +186,11 @@ fun AddEditCategorySheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = if (themeMode == 3) Color(0x33FFFFFF) else if(isDark) Color(0xFF4B5563) else Color(0xFFE5E7EB),
+                    unfocusedBorderColor = if (isGlassMode) Color(0x33FFFFFF) else if(isDark) Color(0xFF4B5563) else Color(0xFFE5E7EB),
                     focusedBorderColor = Color(0xFF10B981),
                     focusedLabelColor = Color(0xFF10B981),
-                    unfocusedContainerColor = if (themeMode == 3) Color(0x22111827) else Color.Transparent,
-                    focusedContainerColor = if (themeMode == 3) Color(0x22111827) else Color.Transparent,
+                    unfocusedContainerColor = if (isGlassMode) Color(0x22111827) else Color.Transparent,
+                    focusedContainerColor = if (isGlassMode) Color(0x22111827) else Color.Transparent,
                 )
             )
             
@@ -202,11 +204,11 @@ fun AddEditCategorySheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = if (themeMode == 3) Color(0x33FFFFFF) else if(isDark) Color(0xFF4B5563) else Color(0xFFE5E7EB),
+                    unfocusedBorderColor = if (isGlassMode) Color(0x33FFFFFF) else if(isDark) Color(0xFF4B5563) else Color(0xFFE5E7EB),
                     focusedBorderColor = Color(0xFF10B981),
                     focusedLabelColor = Color(0xFF10B981),
-                    unfocusedContainerColor = if (themeMode == 3) Color(0x22111827) else Color.Transparent,
-                    focusedContainerColor = if (themeMode == 3) Color(0x22111827) else Color.Transparent,
+                    unfocusedContainerColor = if (isGlassMode) Color(0x22111827) else Color.Transparent,
+                    focusedContainerColor = if (isGlassMode) Color(0x22111827) else Color.Transparent,
                 )
             )
             
@@ -240,44 +242,13 @@ fun AddEditCategorySheet(
             
             Text("Іконка", fontSize = 14.sp, color = if(isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280), fontWeight = FontWeight.Medium)
             Spacer(modifier = Modifier.height(8.dp))
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(48.dp),
-                modifier = Modifier.height(240.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(presetIcons) { iconName ->
-                    val isSelected = iconName == selectedIcon
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                if (isSelected) {
-                                    if (themeMode == 3) Color(0x44D1FAE5) else Color(0xFFD1FAE5)
-                                } else {
-                                    if (themeMode == 3) Color(0x22FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6)
-                                }
-                            )
-                            .let {
-                                if (themeMode == 3) {
-                                    it.border(1.dp, if (isSelected) Color(0xFF10B981) else Color(0x33FFFFFF), RoundedCornerShape(12.dp))
-                                } else if (isSelected && !isDark) {
-                                    it.border(1.dp, Color(0xFF10B981), RoundedCornerShape(12.dp))
-                                } else it
-                            }
-                            .clickable { selectedIcon = iconName },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            IconsHelper.getIcon(iconName), 
-                            contentDescription = null, 
-                            tint = if (isSelected) Color(0xFF10B981) else (if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)),
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-            }
+            PresetIconsGrid(
+                presetIcons = presetIcons,
+                selectedIcon = selectedIcon,
+                isDark = isDark,
+                isGlassMode = isGlassMode,
+                onIconSelected = { selectedIcon = it }
+            )
             
             Spacer(modifier = Modifier.height(32.dp))
             
@@ -321,4 +292,53 @@ fun AddEditCategorySheet(
         }
     }
 }
+
+@Composable
+fun PresetIconsGrid(
+    presetIcons: List<String>,
+    selectedIcon: String,
+    isDark: Boolean,
+    isGlassMode: Boolean,
+    onIconSelected: (String) -> Unit
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(48.dp),
+        modifier = Modifier.height(240.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(presetIcons) { iconName ->
+            val isSelected = iconName == selectedIcon
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        if (isSelected) {
+                            if (isGlassMode) Color(0x44D1FAE5) else Color(0xFFD1FAE5)
+                        } else {
+                            if (isGlassMode) Color(0x22FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6)
+                        }
+                    )
+                    .let {
+                        if (isGlassMode) {
+                            it.border(1.dp, if (isSelected) Color(0xFF10B981) else Color(0x33FFFFFF), RoundedCornerShape(12.dp))
+                        } else if (isSelected && !isDark) {
+                            it.border(1.dp, Color(0xFF10B981), RoundedCornerShape(12.dp))
+                        } else it
+                    }
+                    .clickable { onIconSelected(iconName) },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    IconsHelper.getIcon(iconName), 
+                    contentDescription = null, 
+                    tint = if (isSelected) Color(0xFF10B981) else (if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+    }
+}
+
 

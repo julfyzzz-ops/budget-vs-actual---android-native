@@ -35,7 +35,8 @@ class MainActivity : ComponentActivity() {
             val darkTheme = when (themeMode) {
                 1 -> false
                 2 -> true
-                3 -> isSystemInDarkTheme()
+                3 -> false // Android 17 Light Glass
+                4 -> true  // Android 17 Dark Glass
                 else -> isSystemInDarkTheme()
             }
             

@@ -49,15 +49,17 @@ fun OverviewScreen(viewModel: MainViewModel, navController: NavController) {
     val isDark = when(themeMode) {
         1 -> false
         2 -> true
-        3 -> isSystemDark
+        3 -> false // Android 17 Light Glass
+        4 -> true  // Android 17 Dark Glass
         else -> isSystemDark
     }
 
+    val isGlassMode = themeMode == 3 || themeMode == 4
     val income = transactions.filter { it.type == TransactionType.INCOME }.sumOf { it.amount * it.exchangeRate }
     val expense = transactions.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amount * it.exchangeRate }
     val balance = income - expense
 
-    val bgColor = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
+    val bgColor = if (isGlassMode) Color.Transparent else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
     
     Column(
         modifier = Modifier
@@ -125,19 +127,20 @@ fun OverviewScreen(viewModel: MainViewModel, navController: NavController) {
 @Composable
 fun CustomMonthYearSelector(viewModel: MainViewModel, month: Int, year: Int, isDark: Boolean) {
     val themeMode by viewModel.themeMode.collectAsState()
-    val cardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
+    val isGlassMode = themeMode == 3 || themeMode == 4
+    val cardBg = if (isGlassMode) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
     val textColor = if (isDark) Color.White else Color(0xFF4B5563)
     val iconColor = if (isDark) Color(0xFF9CA3AF) else Color(0xFF4B5563)
-    val rippleColor = if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6)
+    val rippleColor = if (isGlassMode) Color(0x22FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6)
     
     val monthNames = listOf("Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень")
     val monthName = monthNames.getOrNull(month) ?: ""
 
     Card(
-        modifier = if (themeMode == 3) Modifier.fillMaxWidth().glassyCard(RoundedCornerShape(12.dp)) else Modifier.fillMaxWidth(),
+        modifier = if (isGlassMode) Modifier.fillMaxWidth().glassyCard(RoundedCornerShape(12.dp)) else Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = cardBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (themeMode == 3) 0.dp else 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isGlassMode) 0.dp else 2.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(8.dp),
@@ -180,7 +183,8 @@ fun BalanceCard(
         .padding(horizontal = 16.dp, vertical = 8.dp)
         .padding(bottom = 16.dp)
 ) {
-    val cardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
+    val isGlassMode = themeMode == 3 || themeMode == 4
+    val cardBg = if (isGlassMode) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
     
     val balanceColor = if (balance >= 0) {
         if (isDark) Color(0xFF60A5FA) else Color(0xFF2563EB)
@@ -192,10 +196,10 @@ fun BalanceCard(
     val absoluteBalance = Math.abs(balance)
     
     Card(
-        modifier = if (themeMode == 3) modifier.glassyCard(RoundedCornerShape(16.dp)) else modifier,
+        modifier = if (isGlassMode) modifier.glassyCard(RoundedCornerShape(16.dp)) else modifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = cardBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (themeMode == 3) 0.dp else 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isGlassMode) 0.dp else 2.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -228,9 +232,16 @@ fun CategoryListCard(
     isDark: Boolean,
     themeMode: Int = 0
 ) {
-    val cardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
-    val headerBg = if (themeMode == 3) Color(0x1F374151) else if (isDark) Color(0x80374151) else Color(0x80F9FAFB)
-    val dividerColor = if (themeMode == 3) Color(0x1AE5E7EB) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
+    val isGlassMode = themeMode == 3 || themeMode == 4
+    val cardBg = if (isGlassMode) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
+    val headerBg = if (isGlassMode) {
+        if (isDark) Color(0x1F374151) else Color(0x1F6B7280)
+    } else if (isDark) {
+        Color(0x80374151)
+    } else {
+        Color(0x80F9FAFB)
+    }
+    val dividerColor = if (isGlassMode) Color(0x1AE5E7EB) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
     
     val totalSpent = transactions.filter { it.type == (if (isIncome) TransactionType.INCOME else TransactionType.EXPENSE) }.sumOf { it.amount * it.exchangeRate }
     val totalBudget = categories.sumOf { it.getLimitForMonth(month, year) }
@@ -242,7 +253,7 @@ fun CategoryListCard(
     val headerIconColor = if (isIncome) Color(0xFF10B981) else Color(0xFFEF4444)
     val headerIcon = if (isIncome) Icons.Filled.TrendingUp else Icons.Filled.TrendingDown
     
-    val baseModifier = if (themeMode == 3) {
+    val baseModifier = if (isGlassMode) {
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
@@ -259,7 +270,7 @@ fun CategoryListCard(
         modifier = baseModifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = cardBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (themeMode == 3) 0.dp else 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isGlassMode) 0.dp else 2.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // Header

@@ -57,9 +57,12 @@ fun BudgetApp(viewModel: MainViewModel) {
     val isDark = when(themeMode) {
         1 -> false
         2 -> true
-        3 -> isSystemDark
+        3 -> false // Android 17 Light Glass
+        4 -> true  // Android 17 Dark Glass
         else -> isSystemDark
     }
+    
+    val isGlassMode = themeMode == 3 || themeMode == 4
     
     if (showSettingsDialog) {
         androidx.compose.ui.window.Dialog(
@@ -67,7 +70,7 @@ fun BudgetApp(viewModel: MainViewModel) {
             properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
         ) {
             Surface(
-                modifier = if (themeMode == 3) {
+                modifier = if (isGlassMode) {
                     Modifier
                         .fillMaxWidth(0.92f)
                         .wrapContentHeight()
@@ -78,8 +81,8 @@ fun BudgetApp(viewModel: MainViewModel) {
                         .wrapContentHeight()
                         .clip(RoundedCornerShape(24.dp))
                 },
-                color = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White,
-                tonalElevation = if (themeMode == 3) 0.dp else 6.dp
+                color = if (isGlassMode) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White,
+                tonalElevation = if (isGlassMode) 0.dp else 6.dp
             ) {
                 SettingsScreen(viewModel, isExperimental = false, onDismiss = { showSettingsDialog = false })
             }
@@ -92,7 +95,7 @@ fun BudgetApp(viewModel: MainViewModel) {
             properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
         ) {
             Surface(
-                modifier = if (themeMode == 3) {
+                modifier = if (isGlassMode) {
                     Modifier
                         .fillMaxWidth(0.92f)
                         .wrapContentHeight()
@@ -103,8 +106,8 @@ fun BudgetApp(viewModel: MainViewModel) {
                         .wrapContentHeight()
                         .clip(RoundedCornerShape(24.dp))
                 },
-                color = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White,
-                tonalElevation = if (themeMode == 3) 0.dp else 6.dp
+                color = if (isGlassMode) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White,
+                tonalElevation = if (isGlassMode) 0.dp else 6.dp
             ) {
                 ExperimentalSettingsScreen(viewModel, onDismiss = { showExperimentalSettingsDialog = false })
             }
@@ -125,11 +128,15 @@ fun BudgetApp(viewModel: MainViewModel) {
     
     val appContent = @Composable {
         Scaffold(
-            containerColor = if (themeMode == 3) Color.Transparent else MaterialTheme.colorScheme.background,
+            containerColor = if (isGlassMode) Color.Transparent else MaterialTheme.colorScheme.background,
             bottomBar = {
                 NavigationBar(
-                    containerColor = if (themeMode == 3) Color(0x220B0F19) else MaterialTheme.colorScheme.surface,
-                    tonalElevation = if (themeMode == 3) 0.dp else 3.dp
+                    containerColor = if (isGlassMode) {
+                        if (isDark) Color(0x220B0F19) else Color(0x33FFFFFF)
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    },
+                    tonalElevation = if (isGlassMode) 0.dp else 3.dp
                 ) {
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentRoute = navBackStackEntry?.destination?.route
@@ -153,8 +160,8 @@ fun BudgetApp(viewModel: MainViewModel) {
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = { showAddTransactionSheet = true },
-                    containerColor = if (themeMode == 3) Color(0xFF10B981) else MaterialTheme.colorScheme.primary,
-                    contentColor = if (themeMode == 3) Color.White else MaterialTheme.colorScheme.onPrimary,
+                    containerColor = if (isGlassMode) Color(0xFF10B981) else MaterialTheme.colorScheme.primary,
+                    contentColor = if (isGlassMode) Color.White else MaterialTheme.colorScheme.onPrimary,
                     shape = androidx.compose.foundation.shape.CircleShape
                 ) {
                     Icon(Icons.Filled.Add, contentDescription = "Додати транзакцію")
@@ -184,7 +191,7 @@ fun BudgetApp(viewModel: MainViewModel) {
         }
     }
 
-    if (themeMode == 3) {
+    if (isGlassMode) {
         GlassTheme.GlassBackground(isDark = isDark) {
             appContent()
         }

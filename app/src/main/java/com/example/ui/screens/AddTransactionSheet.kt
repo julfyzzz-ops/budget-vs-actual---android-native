@@ -125,9 +125,11 @@ fun AddTransactionSheet(
     val isDark = when(themeMode) {
         1 -> false
         2 -> true
-        3 -> isSystemDark
+        3 -> false // Android 17 Light Glass
+        4 -> true  // Android 17 Dark Glass
         else -> isSystemDark
     }
+    val isGlassMode = themeMode == 3 || themeMode == 4
 
     val bgColor = if (isDark) Color(0xFF1F2937) else Color.White
     val textColor = if (isDark) Color.White else Color(0xFF111827)
@@ -138,10 +140,10 @@ fun AddTransactionSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissInfo,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = if (themeMode == 3) Color.Transparent else bgColor,
+        containerColor = if (isGlassMode) Color.Transparent else bgColor,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
     ) {
-        val rootModifier = if (themeMode == 3) {
+        val rootModifier = if (isGlassMode) {
             Modifier
                 .fillMaxWidth()
                 .glassyCard(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
@@ -172,7 +174,7 @@ fun AddTransactionSheet(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6))
+                        .background(if (isGlassMode) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6))
                         .clickable(onClick = onDismissInfo),
                     contentAlignment = Alignment.Center
                 ) {
@@ -183,7 +185,7 @@ fun AddTransactionSheet(
             Spacer(modifier = Modifier.height(24.dp))
             
             // Segmented Control
-            val segmentedBg = if (themeMode == 3) Color(0x22111827) else if (isDark) Color(0xFF111827) else Color(0xFFF3F4F6)
+            val segmentedBg = if (isGlassMode) Color(0x22111827) else if (isDark) Color(0xFF111827) else Color(0xFFF3F4F6)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -203,14 +205,14 @@ fun AddTransactionSheet(
                         TransactionType.TRANSFER -> Color(0xFF3B82F6)
                     }
                     val bg = if (isSelected) {
-                        if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color.White
+                        if (isGlassMode) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color.White
                     } else {
                         Color.Transparent
                     }
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .shadow(if (isSelected && themeMode != 3) 1.dp else 0.dp, RoundedCornerShape(10.dp))
+                            .shadow(if (isSelected && !isGlassMode) 1.dp else 0.dp, RoundedCornerShape(10.dp))
                             .clip(RoundedCornerShape(10.dp))
                             .background(bg)
                             .clickable {
@@ -307,9 +309,9 @@ fun AddTransactionSheet(
 
                         // A simple divider/exchange rate mock
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                            HorizontalDivider(modifier = Modifier.weight(1f), color = if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB))
+                            HorizontalDivider(modifier = Modifier.weight(1f), color = if (isGlassMode) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB))
                             Text(" Курс обміну ", fontSize = 12.sp, color = mutedColor)
-                            HorizontalDivider(modifier = Modifier.weight(1f), color = if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB))
+                            HorizontalDivider(modifier = Modifier.weight(1f), color = if (isGlassMode) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB))
                         }
                         
                         Spacer(modifier = Modifier.height(16.dp))
@@ -413,7 +415,7 @@ fun AddTransactionSheet(
                         val catBaseColor = Color(cat.color.toInt())
                         
                         Box(
-                            modifier = if (themeMode == 3) {
+                            modifier = if (isGlassMode) {
                                 Modifier
                                     .glassyCard(RoundedCornerShape(12.dp))
                                     .background(if (isSelected) catBaseColor.copy(alpha = 0.15f) else Color.Transparent)
@@ -462,7 +464,7 @@ fun AddTransactionSheet(
                     Text("Дата", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = textColor)
                     Spacer(modifier = Modifier.height(8.dp))
                     Box(
-                        modifier = if (themeMode == 3) {
+                        modifier = if (isGlassMode) {
                             Modifier
                                 .fillMaxWidth()
                                 .glassyCard(RoundedCornerShape(12.dp))
@@ -515,8 +517,8 @@ fun AddTransactionSheet(
             // Note
             Text("Нотатка", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = textColor)
             Spacer(modifier = Modifier.height(8.dp))
-            val noteContainerColor = if (themeMode == 3) Color(0x33111827) else if (isDark) Color(0xFF374151) else Color(0xFFF9FAFB)
-            val noteBorderColor = if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
+            val noteContainerColor = if (isGlassMode) Color(0x33111827) else if (isDark) Color(0xFF374151) else Color(0xFFF9FAFB)
+            val noteBorderColor = if (isGlassMode) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
 
             OutlinedTextField(
                 value = note,
@@ -581,6 +583,7 @@ fun AccountSelector(
     label: String? = null,
     themeMode: Int = 0
 ) {
+    val isGlassMode = themeMode == 3 || themeMode == 4
     var expanded by remember { mutableStateOf(false) }
     val mutedColor = if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)
     val textColor = if (isDark) Color.White else Color(0xFF111827)
@@ -591,7 +594,7 @@ fun AccountSelector(
         }
         Box {
             Row(
-                modifier = if (themeMode == 3) {
+                modifier = if (isGlassMode) {
                     Modifier
                         .fillMaxWidth()
                         .glassyCard(RoundedCornerShape(12.dp))
@@ -622,7 +625,7 @@ fun AccountSelector(
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = if (themeMode == 3) {
+                modifier = if (isGlassMode) {
                     Modifier.glassyCard(RoundedCornerShape(12.dp))
                 } else {
                     Modifier.background(if(isDark) Color(0xFF1F2937) else Color.White)
@@ -734,7 +737,8 @@ fun InlineCalculator(
     isDark: Boolean,
     themeMode: Int = 0
 ) {
-    val btnBg = if (themeMode == 3) Color(0x22FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6)
+    val isGlassMode = themeMode == 3 || themeMode == 4
+    val btnBg = if (isGlassMode) Color(0x22FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6)
     val btnText = if (isDark) Color.White else Color(0xFF111827)
     val ops = listOf("+", "-", "*", "/", "%")
     

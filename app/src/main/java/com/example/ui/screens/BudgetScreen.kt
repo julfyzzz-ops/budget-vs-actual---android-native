@@ -57,8 +57,12 @@ fun BudgetScreen(viewModel: MainViewModel) {
     val isDark = when(themeMode) {
         1 -> false
         2 -> true
+        3 -> false // Android 17 Light Glass
+        4 -> true  // Android 17 Dark Glass
         else -> isSystemDark
     }
+
+    val isGlassMode = themeMode == 3 || themeMode == 4
 
     var showAddCategorySheet by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     var categoryToEdit by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<Category?>(null) }
@@ -78,7 +82,7 @@ fun BudgetScreen(viewModel: MainViewModel) {
     val plnExpense = categories.filter { it.type == TransactionType.EXPENSE }.sumOf { it.getLimitForMonth(month, year) }
     val projectedBalance = plnIncome - plnExpense
 
-    val bgColor = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
+    val bgColor = if (isGlassMode) Color.Transparent else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
 
     Column(modifier = Modifier.fillMaxSize().background(bgColor)) {
         Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth()) {
@@ -89,18 +93,18 @@ fun BudgetScreen(viewModel: MainViewModel) {
 
         LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
             item {
-                val cardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
-                val borderColor = if (themeMode == 3) Color(0x1AE5E7EB) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
+                val cardBg = if (isGlassMode) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
+                val borderColor = if (isGlassMode) Color(0x1AE5E7EB) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
                 
                 Card(
-                    modifier = if (themeMode == 3) {
+                    modifier = if (isGlassMode) {
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp).glassyCard(RoundedCornerShape(16.dp))
                     } else {
                         Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 24.dp)
                     },
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = cardBg),
-                    border = if (themeMode == 3) null else BorderStroke(1.dp, borderColor)
+                    border = if (isGlassMode) null else BorderStroke(1.dp, borderColor)
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -170,7 +174,7 @@ fun BudgetScreen(viewModel: MainViewModel) {
             
             item {
                 Row(
-                    modifier = if (themeMode == 3) {
+                    modifier = if (isGlassMode) {
                         Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -227,10 +231,11 @@ fun BudgetGroup(
     themeMode: Int = 0,
     onEditClick: (Category) -> Unit
 ) {
-    val cardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
-    val borderColor = if (themeMode == 3) Color(0x1AE5E7EB) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
+    val isGlassMode = themeMode == 3 || themeMode == 4
+    val cardBg = if (isGlassMode) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
+    val borderColor = if (isGlassMode) Color(0x1AE5E7EB) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
     
-    val baseModifier = if (themeMode == 3) {
+    val baseModifier = if (isGlassMode) {
         Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 16.dp).glassyCard(RoundedCornerShape(16.dp))
     } else {
         Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 16.dp)
@@ -240,11 +245,11 @@ fun BudgetGroup(
         modifier = baseModifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = cardBg),
-        border = if (themeMode == 3) null else BorderStroke(1.dp, borderColor)
+        border = if (isGlassMode) null else BorderStroke(1.dp, borderColor)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // Header
-            val headerBg = if (themeMode == 3) {
+            val headerBg = if (isGlassMode) {
                 if (isDark) Color(0x1F374151) else Color(0x1F6B7280)
             } else if (isDark) {
                 Color(0x80374151)

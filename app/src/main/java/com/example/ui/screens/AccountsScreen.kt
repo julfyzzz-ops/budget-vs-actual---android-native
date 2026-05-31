@@ -68,8 +68,12 @@ fun AccountsScreen(
     val isDark = when(themeMode) {
         1 -> false
         2 -> true
+        3 -> false // Android 17 Light Glass
+        4 -> true  // Android 17 Dark Glass
         else -> isSystemDark
     }
+
+    val isGlassMode = themeMode == 3 || themeMode == 4
 
     var showAddAccountSheet by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     var accountToEdit by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<Account?>(null) }
@@ -91,21 +95,21 @@ fun AccountsScreen(
     }
 
     val totalCapital = accounts.sumOf { getDynamicBalance(it) * it.exchangeRate }
-    val bgColor = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
+    val bgColor = if (isGlassMode) Color.Transparent else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
 
     Column(modifier = Modifier.fillMaxSize().background(bgColor)) {
         // Top Card Selector
-        val topCardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
+        val topCardBg = if (isGlassMode) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
         Box(
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .fillMaxWidth()
         ) {
             Card(
-                modifier = if (themeMode == 3) Modifier.fillMaxWidth().glassyCard(RoundedCornerShape(12.dp)) else Modifier.fillMaxWidth(),
+                modifier = if (isGlassMode) Modifier.fillMaxWidth().glassyCard(RoundedCornerShape(12.dp)) else Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(containerColor = topCardBg),
-                elevation = CardDefaults.cardElevation(defaultElevation = if (themeMode == 3) 0.dp else 2.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = if (isGlassMode) 0.dp else 2.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -259,7 +263,7 @@ fun AccountsScreen(
 
             item {
                 Row(
-                    modifier = if (themeMode == 3) {
+                    modifier = if (isGlassMode) {
                         Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -300,7 +304,7 @@ fun AccountsScreen(
             item {
                 val isVisible = showHiddenAccounts
                 Row(
-                    modifier = if (themeMode == 3) {
+                    modifier = if (isGlassMode) {
                         Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -364,10 +368,11 @@ fun AccountGroup(
 ) {
     if (accounts.isEmpty()) return
 
-    val cardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
-    val borderColor = if (themeMode == 3) Color(0x1AE5E7EB) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
+    val isGlassMode = themeMode == 3 || themeMode == 4
+    val cardBg = if (isGlassMode) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
+    val borderColor = if (isGlassMode) Color(0x1AE5E7EB) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
 
-    val baseModifier = if (themeMode == 3) {
+    val baseModifier = if (isGlassMode) {
         Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
@@ -384,11 +389,17 @@ fun AccountGroup(
         modifier = baseModifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = cardBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (themeMode == 3) 0.dp else 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isGlassMode) 0.dp else 2.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // Header
-            val headerBg = if (themeMode == 3) Color(0x1F374151) else if (isDark) Color(0x80374151) else Color(0x80F9FAFB)
+            val headerBg = if (isGlassMode) {
+                if (isDark) Color(0x1F374151) else Color(0x1F6B7280)
+            } else if (isDark) {
+                Color(0x80374151)
+            } else {
+                Color(0x80F9FAFB)
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
