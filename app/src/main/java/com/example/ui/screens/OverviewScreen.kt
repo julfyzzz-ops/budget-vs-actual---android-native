@@ -48,7 +48,8 @@ fun OverviewScreen(viewModel: MainViewModel, navController: NavController) {
     val isSystemDark = isSystemInDarkTheme()
     val isDark = when(themeMode) {
         1 -> false
-        2, 3 -> true
+        2 -> true
+        3 -> isSystemDark
         else -> isSystemDark
     }
 

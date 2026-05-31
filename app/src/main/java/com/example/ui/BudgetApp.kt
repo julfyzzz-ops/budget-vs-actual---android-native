@@ -25,6 +25,7 @@ import com.example.ui.screens.*
 import com.example.ui.viewmodels.MainViewModel
 
 import com.example.ui.theme.GlassTheme
+import com.example.ui.theme.GlassTheme.glassyCard
 
 sealed class Screen(val route: String, val title: String, val icon: @Composable () -> Unit) {
     object Overview : Screen("overview", "Огляд", { Icon(Icons.Filled.GridView, contentDescription = "Огляд") })
@@ -55,7 +56,8 @@ fun BudgetApp(viewModel: MainViewModel) {
     val isSystemDark = isSystemInDarkTheme()
     val isDark = when(themeMode) {
         1 -> false
-        2, 3 -> true
+        2 -> true
+        3 -> isSystemDark
         else -> isSystemDark
     }
     
@@ -69,15 +71,14 @@ fun BudgetApp(viewModel: MainViewModel) {
                     Modifier
                         .fillMaxWidth(0.92f)
                         .wrapContentHeight()
-                        .clip(RoundedCornerShape(24.dp))
-                        .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(24.dp))
+                        .glassyCard(RoundedCornerShape(24.dp), isDark = isDark)
                 } else {
                     Modifier
                         .fillMaxWidth(0.92f)
                         .wrapContentHeight()
                         .clip(RoundedCornerShape(24.dp))
                 },
-                color = if (themeMode == 3) Color(0xE60B0F19) else if (isDark) Color(0xFF1F2937) else Color.White,
+                color = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White,
                 tonalElevation = if (themeMode == 3) 0.dp else 6.dp
             ) {
                 SettingsScreen(viewModel, isExperimental = false, onDismiss = { showSettingsDialog = false })
@@ -95,15 +96,14 @@ fun BudgetApp(viewModel: MainViewModel) {
                     Modifier
                         .fillMaxWidth(0.92f)
                         .wrapContentHeight()
-                        .clip(RoundedCornerShape(24.dp))
-                        .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(24.dp))
+                        .glassyCard(RoundedCornerShape(24.dp), isDark = isDark)
                 } else {
                     Modifier
                         .fillMaxWidth(0.92f)
                         .wrapContentHeight()
                         .clip(RoundedCornerShape(24.dp))
                 },
-                color = if (themeMode == 3) Color(0xE60B0F19) else if (isDark) Color(0xFF1F2937) else Color.White,
+                color = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White,
                 tonalElevation = if (themeMode == 3) 0.dp else 6.dp
             ) {
                 ExperimentalSettingsScreen(viewModel, onDismiss = { showExperimentalSettingsDialog = false })
@@ -185,7 +185,7 @@ fun BudgetApp(viewModel: MainViewModel) {
     }
 
     if (themeMode == 3) {
-        GlassTheme.GlassBackground {
+        GlassTheme.GlassBackground(isDark = isDark) {
             appContent()
         }
     } else {

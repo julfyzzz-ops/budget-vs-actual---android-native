@@ -244,7 +244,13 @@ fun BudgetGroup(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // Header
-            val headerBg = if (themeMode == 3) Color(0x1F374151) else if (isDark) Color(0x80374151) else Color(0x80F9FAFB)
+            val headerBg = if (themeMode == 3) {
+                if (isDark) Color(0x1F374151) else Color(0x1F6B7280)
+            } else if (isDark) {
+                Color(0x80374151)
+            } else {
+                Color(0x80F9FAFB)
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

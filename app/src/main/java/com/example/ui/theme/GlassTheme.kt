@@ -1,5 +1,6 @@
 package com.example.ui.theme
 
+import android.os.Build
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -18,82 +20,89 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 object GlassTheme {
-    // Elegant neon & luxury colors for Android 17 visual theme
-    val GlowPink = Color(0x33FF2E93)
-    val GlowBlue = Color(0x2B4361EE)
-    val GlowTeal = Color(0x2410B981)
+    // Dark Space visual parameters (Android 17 Dark Glass Mode)
     val DarkSpace = Color(0xFF0B0F19)
+    val GlowPinkDark = Color(0x33FF2E93)
+    val GlowBlueDark = Color(0x2B4361EE)
+    val GlowTealDark = Color(0x2410B981)
 
-    // Glass frosted colors
-    val GlassBgLight = Color(0x1CFFFFFF) // Light reflection on top
-    val GlassBgDark = Color(0x29111827)  // Translucent dark center
-    val GlassBorder = Color(0x33FFFFFF)  // 20% white border for sharp glare reflection
-    
+    // Light Space visual parameters (Android 17 Light Glass Mode)
+    val LightSpace = Color(0xFFF1F5F9)
+    val GlowPinkLight = Color(0x26FF5A9E)
+    val GlowBlueLight = Color(0x1F83A4FC)
+    val GlowTealLight = Color(0x1C10B981)
+
     @Composable
     fun GlassBackground(
         modifier: Modifier = Modifier,
+        isDark: Boolean = true,
         content: @Composable () -> Unit
     ) {
-        // Subtle animate offsets of glowing blobs for that organic premium feel (Android 17)
+        // Subtle animated offsets for the organic premium fluid neon aura (Android 17)
         val infiniteTransition = rememberInfiniteTransition(label = "glass_glow")
         val animOffsetMultiplier by infiniteTransition.animateFloat(
             initialValue = 0f,
             targetValue = 2f * Math.PI.toFloat(),
             animationSpec = infiniteRepeatable(
-                animation = tween(20000, easing = LinearEasing),
+                animation = tween(25000, easing = LinearEasing),
                 repeatMode = RepeatMode.Restart
             ),
             label = "offset"
         )
 
+        val baseColor = if (isDark) DarkSpace else LightSpace
+        val pinkBlob = if (isDark) GlowPinkDark else GlowPinkLight
+        val blueBlob = if (isDark) GlowBlueDark else GlowBlueLight
+        val tealBlob = if (isDark) GlowTealDark else GlowTealLight
+
         Box(
             modifier = modifier
                 .fillMaxSize()
                 .drawBehind {
-                    // Draw Dark Space base
-                    drawRect(color = DarkSpace)
+                    // Draw base atmosphere space color
+                    drawRect(color = baseColor)
 
-                    // Draw soft glow blobs based on trig offsets for modern fluid feel
                     val width = size.width
                     val height = size.height
 
-                    val xOffset1 = Math.cos(animOffsetMultiplier.toDouble()).toFloat() * 100f
-                    val yOffset1 = Math.sin(animOffsetMultiplier.toDouble()).toFloat() * 80f
+                    // Dynamic circular movements
+                    val xOffset1 = Math.cos(animOffsetMultiplier.toDouble()).toFloat() * 120f
+                    val yOffset1 = Math.sin(animOffsetMultiplier.toDouble()).toFloat() * 90f
                     
-                    val xOffset2 = Math.sin(animOffsetMultiplier.toDouble() + 2.0).toFloat() * 120f
-                    val yOffset2 = Math.cos(animOffsetMultiplier.toDouble() + 1.0).toFloat() * 100f
+                    val xOffset2 = Math.sin(animOffsetMultiplier.toDouble() + 2.0).toFloat() * 150f
+                    val yOffset2 = Math.cos(animOffsetMultiplier.toDouble() + 1.0).toFloat() * 110f
 
-                    // 1. Top Right pink/purple glow
+                    // 1. Top Right warm coral/pink aurora
                     drawCircle(
                         brush = Brush.radialGradient(
-                            colors = listOf(GlowPink, Color.Transparent),
-                            center = Offset(width * 0.8f + xOffset1, height * 0.2f + yOffset1),
-                            radius = width * 0.6f
+                            colors = listOf(pinkBlob, Color.Transparent),
+                            center = Offset(width * 0.82f + xOffset1, height * 0.18f + yOffset1),
+                            radius = width * 0.65f
                         ),
-                        center = Offset(width * 0.8f + xOffset1, height * 0.2f + yOffset1),
-                        radius = width * 0.6f
+                        center = Offset(width * 0.82f + xOffset1, height * 0.18f + yOffset1),
+                        radius = width * 0.65f
                     )
 
-                    // 2. Middle Left royal blue glow
+                    // 2. Middle Left dynamic deep blue aurora
                     drawCircle(
                         brush = Brush.radialGradient(
-                            colors = listOf(GlowBlue, Color.Transparent),
-                            center = Offset(width * 0.1f + xOffset2, height * 0.5f + yOffset2),
-                            radius = width * 0.7f
+                            colors = listOf(blueBlob, Color.Transparent),
+                            center = Offset(width * 0.12f + xOffset2, height * 0.52f + yOffset2),
+                            radius = width * 0.75f
                         ),
-                        center = Offset(width * 0.1f + xOffset2, height * 0.5f + yOffset2),
-                        radius = width * 0.7f
+                        center = Offset(width * 0.12f + xOffset2, height * 0.52f + yOffset2),
+                        radius = width * 0.75f
                     )
 
-                    // 3. Bottom Right green-teal glow
+                    // 3. Bottom Right fresh teal/mint accent
                     drawCircle(
                         brush = Brush.radialGradient(
-                            colors = listOf(GlowTeal, Color.Transparent),
-                            center = Offset(width * 0.7f, height * 0.85f),
-                            radius = width * 0.5f
+                            colors = listOf(tealBlob, Color.Transparent),
+                            center = Offset(width * 0.68f, height * 0.88f),
+                            radius = width * 0.55f
                         ),
-                        center = Offset(width * 0.7f, height * 0.85f),
-                        radius = width * 0.5f
+                        center = Offset(width * 0.68f, height * 0.88f),
+                        radius = width * 0.55f
                     )
                 }
         ) {
@@ -102,19 +111,51 @@ object GlassTheme {
     }
 
     /**
-     * Applies glassmorphism border and background brush
+     * Applies glassmorphic frosted glass design containing correct background blur,
+     * adaptive Monet tint fill, and top-left to bottom-right linear gradient glare border.
      */
     fun Modifier.glassyCard(
         shape: Shape,
+        isDark: Boolean? = null,
         borderWidth: Dp = 1.dp
-    ): Modifier {
-        return this
-            .clip(shape)
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(GlassBgLight, GlassBgDark)
-                )
-            )
-            .border(borderWidth, GlassBorder, shape)
+    ): Modifier = composed {
+        val sdkVersion = Build.VERSION.SDK_INT
+        val actualIsDark = isDark ?: androidx.compose.foundation.isSystemInDarkTheme()
+
+        // Choose translucent tint depending on light/dark mode (based on Android 17 specifications)
+        val tintColor = if (actualIsDark) {
+            Color.Black.copy(alpha = 0.3f)
+        } else {
+            Color.White.copy(alpha = 0.4f)
+        }
+
+        // 1.dp top-left (Color.White.copy(alpha=0.4f)) to bottom-right (Color.White.copy(alpha=0.05f)) lineargradient glare border
+        val borderBrush = Brush.linearGradient(
+            colors = listOf(
+                Color.White.copy(alpha = 0.4f),
+                Color.White.copy(alpha = 0.05f)
+            ),
+            start = Offset(0f, 0f),
+            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+        )
+
+        val activeClipModifier = this.clip(shape)
+
+        // Android 12+ (SDK >= 31) live render backdrop blur effect fallback check
+        val glassModifier = if (sdkVersion >= 31) {
+            activeClipModifier
+                .blur(radius = 25.dp) // Frosted glass blur effect (20.dp - 30.dp)
+                .background(tintColor, shape)
+        } else {
+            // Android 11 and lower fallback check (90% alpha solid adaptive color sheet for premium visual accentuation)
+            val fallbackSurfaceColor = if (actualIsDark) {
+                Color(0xE6111827) // Solid M3 surface replacement
+            } else {
+                Color(0xFAFFFFFF) // Solid light surface replacement
+            }
+            activeClipModifier.background(fallbackSurfaceColor, shape)
+        }
+
+        glassModifier.border(borderWidth, borderBrush, shape)
     }
 }
