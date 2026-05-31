@@ -109,7 +109,7 @@ fun AccountsScreen(
                     color = if (isDark) Color.White else Color(0xFF111827)
                 )
                 Text(
-                    text = "v1.4.1 (31.05.2026 08:15)",
+                    text = "v1.4.2 (31.05.2026 08:35)",
                     fontSize = 11.sp,
                     color = if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)
                 )

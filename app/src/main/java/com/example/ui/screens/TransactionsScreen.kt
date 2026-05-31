@@ -66,6 +66,33 @@ fun TransactionsScreen(viewModel: MainViewModel, onEditTransaction: (com.example
 
     val isFilterActive = filterAccountId != null || filterCategoryId != null
 
+    var transactionToDelete by remember { mutableStateOf<com.example.data.model.TransactionEntity?>(null) }
+
+    if (transactionToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { transactionToDelete = null },
+            title = { Text("Підтвердження видалення", fontWeight = FontWeight.Bold, color = if (isDark) Color.White else Color(0xFF111827)) },
+            text = { Text("Ви впевнені, що хочете видалити цю транзакцію?", color = if (isDark) Color(0xFFD1D5DB) else Color(0xFF4B5563)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        transactionToDelete?.let { viewModel.deleteTransaction(it) }
+                        transactionToDelete = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFFEF4444))
+                ) {
+                    Text("Видалити", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { transactionToDelete = null }) {
+                    Text("Скасувати", color = if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280))
+                }
+            },
+            containerColor = if (isDark) Color(0xFF1F2937) else Color.White
+        )
+    }
+
     Column(modifier = Modifier.fillMaxSize().background(bgColor)) {
         // Header
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -215,7 +242,7 @@ fun TransactionsScreen(viewModel: MainViewModel, onEditTransaction: (com.example
                                             incognito = incognito,
                                             isDark = isDark,
                                             onEditClick = { onEditTransaction(tx) },
-                                            onDelete = { viewModel.deleteTransaction(tx) }
+                                            onDelete = { transactionToDelete = tx }
                                         )
                                         
                                         if (index < txs.size - 1) {
@@ -302,7 +329,6 @@ fun TransactionRowItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(if (isDark) Color(0xFF1F2937) else Color.White)
-                    .clickable(onClick = onEditClick)
                     .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {

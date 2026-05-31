@@ -40,6 +40,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.Account
@@ -68,8 +70,14 @@ fun AddTransactionSheet(
     var selectedAccount by remember { mutableStateOf<Account?>(accounts.find { it.id == (transactionToEdit?.accountId ?: draft?.accountId) } ?: accounts.firstOrNull()) }
     var selectedTargetAccount by remember { mutableStateOf<Account?>(accounts.find { it.id == transactionToEdit?.receiverAccountId }) }
     
-    var amount by remember { mutableStateOf(transactionToEdit?.amount?.toString() ?: draft?.amount?.toString() ?: "") }
-    var receiverAmount by remember { mutableStateOf(transactionToEdit?.receiverAmount?.toString() ?: "") }
+    var amountValue by remember {
+        val initialText = transactionToEdit?.amount?.toString() ?: draft?.amount?.toString() ?: ""
+        mutableStateOf(TextFieldValue(text = initialText, selection = TextRange(initialText.length)))
+    }
+    var receiverAmountValue by remember {
+        val initialText = transactionToEdit?.receiverAmount?.toString() ?: ""
+        mutableStateOf(TextFieldValue(text = initialText, selection = TextRange(initialText.length)))
+    }
     var note by remember { mutableStateOf(transactionToEdit?.note ?: draft?.note ?: "") }
     var selectedCategory by remember { mutableStateOf<Category?>(categories.find { it.id == (transactionToEdit?.categoryId ?: draft?.categoryId) }) }
     
@@ -97,6 +105,7 @@ fun AddTransactionSheet(
     var selectedDate by remember { mutableStateOf(transactionToEdit?.timestamp?.let { Date(it) } ?: Date()) }
 
     var isAmountFocused by remember { mutableStateOf(false) }
+    var isReceiverFocused by remember { mutableStateOf(false) }
 
     val themeMode by viewModel.themeMode.collectAsState()
     val isSystemDark = isSystemInDarkTheme()
@@ -211,8 +220,8 @@ fun AddTransactionSheet(
                 
                 // Amount Input
                 AmountInput(
-                    amount = amount,
-                    onAmountChange = { amount = it },
+                    amountValue = amountValue,
+                    onAmountChange = { amountValue = it },
                     currency = selectedAccount?.currency ?: "UAH",
                     isDark = isDark,
                     onFocusChange = { isAmountFocused = it }
@@ -254,8 +263,8 @@ fun AddTransactionSheet(
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text("Списати (${selectedAccount?.currency})", fontSize = 12.sp, color = mutedColor, modifier = Modifier.padding(bottom = 8.dp))
                         AmountInput(
-                            amount = amount,
-                            onAmountChange = { amount = it },
+                            amountValue = amountValue,
+                            onAmountChange = { amountValue = it },
                             currency = selectedAccount?.currency ?: "",
                             isDark = isDark,
                             onFocusChange = { isAmountFocused = it },
@@ -275,18 +284,18 @@ fun AddTransactionSheet(
 
                         Text("Зарахувати (${selectedTargetAccount?.currency})", fontSize = 12.sp, color = mutedColor, modifier = Modifier.padding(bottom = 8.dp))
                         AmountInput(
-                            amount = receiverAmount,
-                            onAmountChange = { receiverAmount = it },
+                            amountValue = receiverAmountValue,
+                            onAmountChange = { receiverAmountValue = it },
                             currency = selectedTargetAccount?.currency ?: "",
                             isDark = isDark,
-                            onFocusChange = {},
+                            onFocusChange = { isReceiverFocused = it },
                             hideCurrencyPrefix = true
                         )
                     }
                 } else {
                     AmountInput(
-                        amount = amount,
-                        onAmountChange = { amount = it },
+                        amountValue = amountValue,
+                        onAmountChange = { amountValue = it },
                         currency = selectedAccount?.currency ?: "UAH",
                         isDark = isDark,
                         onFocusChange = { isAmountFocused = it }
@@ -295,16 +304,54 @@ fun AddTransactionSheet(
             }
             
             // Inline Calculator
-            AnimatedVisibility(visible = isAmountFocused) {
+            AnimatedVisibility(visible = isAmountFocused || isReceiverFocused) {
                 InlineCalculator(
-                    onOperatorClick = { op -> amount += op },
+                    onOperatorClick = { op ->
+                        if (isReceiverFocused) {
+                            val currentText = receiverAmountValue.text
+                            val selectionStart = receiverAmountValue.selection.start
+                            val selectionEnd = receiverAmountValue.selection.end
+                            val newText = if (selectionStart >= 0 && selectionEnd >= 0) {
+                                currentText.substring(0, selectionStart) + op + currentText.substring(selectionEnd)
+                            } else {
+                                currentText + op
+                            }
+                            val newCursorPos = if (selectionStart >= 0) selectionStart + op.length else newText.length
+                            receiverAmountValue = TextFieldValue(
+                                text = newText,
+                                selection = TextRange(newCursorPos)
+                            )
+                        } else {
+                            val currentText = amountValue.text
+                            val selectionStart = amountValue.selection.start
+                            val selectionEnd = amountValue.selection.end
+                            val newText = if (selectionStart >= 0 && selectionEnd >= 0) {
+                                currentText.substring(0, selectionStart) + op + currentText.substring(selectionEnd)
+                            } else {
+                                currentText + op
+                            }
+                            val newCursorPos = if (selectionStart >= 0) selectionStart + op.length else newText.length
+                            amountValue = TextFieldValue(
+                                text = newText,
+                                selection = TextRange(newCursorPos)
+                            )
+                        }
+                    },
                     onEqualClick = {
-                        val evaluated = evaluateMath(amount)
-                        if (evaluated != null) {
-                            // if ends with .0, drop it
-                            val fmt = if (evaluated == evaluated.toLong().toDouble()) evaluated.toLong().toString() else evaluated.toString()
-                            amount = fmt
-                            focusManager.clearFocus()
+                        if (isReceiverFocused) {
+                            val evaluated = evaluateMath(receiverAmountValue.text)
+                            if (evaluated != null) {
+                                val fmt = if (evaluated == evaluated.toLong().toDouble()) evaluated.toLong().toString() else evaluated.toString()
+                                receiverAmountValue = TextFieldValue(text = fmt, selection = TextRange(fmt.length))
+                                focusManager.clearFocus()
+                            }
+                        } else {
+                            val evaluated = evaluateMath(amountValue.text)
+                            if (evaluated != null) {
+                                val fmt = if (evaluated == evaluated.toLong().toDouble()) evaluated.toLong().toString() else evaluated.toString()
+                                amountValue = TextFieldValue(text = fmt, selection = TextRange(fmt.length))
+                                focusManager.clearFocus()
+                            }
                         }
                     },
                     isDark = isDark
@@ -423,13 +470,13 @@ fun AddTransactionSheet(
 
             Button(
                 onClick = {
-                    val evaluatedAmount = evaluateMath(amount) ?: 0.0
+                    val evaluatedAmount = evaluateMath(amountValue.text) ?: 0.0
                     val finalAmt = if (selectedType == TransactionType.TRANSFER) Math.abs(evaluatedAmount) else evaluatedAmount
                     
                     if (finalAmt != 0.0 && selectedAccount != null) {
                         val validCategory = selectedType == TransactionType.TRANSFER || selectedCategory != null
                         if (validCategory) {
-                            val targetAmount = evaluateMath(receiverAmount) ?: 0.0
+                            val targetAmount = evaluateMath(receiverAmountValue.text) ?: 0.0
                             
                             val tx = TransactionEntity(
                                 id = transactionToEdit?.id ?: 0,
@@ -517,8 +564,8 @@ fun AccountSelector(
 
 @Composable
 fun AmountInput(
-    amount: String,
-    onAmountChange: (String) -> Unit,
+    amountValue: TextFieldValue,
+    onAmountChange: (TextFieldValue) -> Unit,
     currency: String,
     isDark: Boolean,
     onFocusChange: (Boolean) -> Unit,
@@ -542,7 +589,7 @@ fun AmountInput(
         }
         
         BasicTextField(
-            value = amount,
+            value = amountValue,
             onValueChange = onAmountChange,
             textStyle = TextStyle(
                 fontSize = 28.sp,
@@ -562,10 +609,36 @@ fun AmountInput(
                 .fillMaxWidth()
                 .onFocusChanged { state -> onFocusChange(state.isFocused) },
             decorationBox = { innerTextField ->
-                if (amount.isEmpty()) {
-                    Text("0", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = mutedColor.copy(alpha = 0.5f))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        if (amountValue.text.isEmpty()) {
+                            Text("0", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = mutedColor.copy(alpha = 0.5f))
+                        }
+                        innerTextField()
+                    }
+                    
+                    if (amountValue.text.any { it in listOf('+', '-', '*', '/', '%') }) {
+                        val evaluated = evaluateMath(amountValue.text)
+                        if (evaluated != null) {
+                            val fmt = if (evaluated == evaluated.toLong().toDouble()) {
+                                evaluated.toLong().toString()
+                            } else {
+                                String.format(Locale.US, "%.2f", evaluated).trimEnd('0').trimEnd('.')
+                            }
+                            Text(
+                                text = "=$fmt",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = mutedColor.copy(alpha = 0.8f),
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                    }
                 }
-                innerTextField()
             }
         )
     }
