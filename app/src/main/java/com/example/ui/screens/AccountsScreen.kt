@@ -96,7 +96,6 @@ fun AccountsScreen(
         val topCardBg = if (isDark) Color(0xFF1F2937) else Color.White
         Box(
             modifier = Modifier
-                .statusBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .fillMaxWidth()
         ) {
@@ -121,7 +120,7 @@ fun AccountsScreen(
                             color = if (isDark) Color.White else Color(0xFF111827)
                         )
                         Text(
-                            text = "v1.4.6 (31.05.2026 09:15)",
+                            text = "v1.4.7 (31.05.2026 09:20)",
                             fontSize = 11.sp,
                             color = if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)
                         )
