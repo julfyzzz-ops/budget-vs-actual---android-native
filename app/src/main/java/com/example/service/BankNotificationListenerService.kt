@@ -277,16 +277,16 @@ class BankNotificationListenerService : NotificationListenerService() {
         unrecognizedFields: List<String>,
         pendingIntent: PendingIntent? = null
     ) {
-        val channelId = "bank_imports"
+        val channelId = "bank_imports_high"
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
                 "Бюджетний автоматичний імпорт",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Сповіщення про успішний та незавершений авто-імпорт транзакцій"
+                description = "Термінові сповіщення про успішний та незавершений авто-імпорт транзакцій"
             }
             notificationManager.createNotificationChannel(channel)
         }
@@ -303,7 +303,8 @@ class BankNotificationListenerService : NotificationListenerService() {
             .setContentTitle(title)
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(Notification.DEFAULT_ALL)
             .setAutoCancel(true)
 
         if (pendingIntent != null) {
@@ -314,16 +315,16 @@ class BankNotificationListenerService : NotificationListenerService() {
     }
 
     private fun showParsingFailedDebugNotification(context: Context, appName: String, text: String) {
-        val channelId = "bank_imports"
+        val channelId = "bank_imports_high"
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
                 "Бюджетний автоматичний імпорт",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Сповіщення про успішний та незавершений авто-імпорт транзакцій"
+                description = "Термінові сповіщення про успішний та незавершений авто-імпорт транзакцій"
             }
             notificationManager.createNotificationChannel(channel)
         }
@@ -336,7 +337,8 @@ class BankNotificationListenerService : NotificationListenerService() {
             .setContentTitle(title)
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(Notification.DEFAULT_ALL)
             .setAutoCancel(true)
 
         notificationManager.notify((System.currentTimeMillis().toInt() + 1), builder.build())

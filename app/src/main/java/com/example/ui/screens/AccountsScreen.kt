@@ -98,9 +98,22 @@ fun AccountsScreen(
                 .statusBarsPadding()
                 .fillMaxWidth()
                 .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 0.dp),
-            horizontalArrangement = Arrangement.End,
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Column {
+                Text(
+                    text = "Бюджет",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isDark) Color.White else Color(0xFF111827)
+                )
+                Text(
+                    text = "v1.4.1 (31.05.2026 08:15)",
+                    fontSize = 11.sp,
+                    color = if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)
+                )
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 // Red Bank Import Settings Button
                 IconButton(

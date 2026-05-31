@@ -33,6 +33,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
+import android.os.Build
 import com.example.data.model.Account
 import com.example.data.model.Category
 import com.example.data.model.TransactionType
@@ -48,6 +55,67 @@ fun ExperimentalSettingsScreen(viewModel: MainViewModel, onDismiss: () -> Unit) 
 
     val context = LocalContext.current
     val isSystemDark = isSystemInDarkTheme()
+
+    var isPostNotificationsGranted by remember {
+        mutableStateOf(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+            } else {
+                true
+            }
+        )
+    }
+
+    var isListenerEnabled by remember {
+        mutableStateOf(false)
+    }
+
+    fun checkListenerEnabled(ctx: Context): Boolean {
+        val pkgName = ctx.packageName
+        val flat = android.provider.Settings.Secure.getString(ctx.contentResolver, "enabled_notification_listeners")
+        if (flat != null) {
+            val names = flat.split(":")
+            for (name in names) {
+                val cn = android.content.ComponentName.unflattenFromString(name)
+                if (cn != null && cn.packageName == pkgName) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            isPostNotificationsGranted = isGranted
+            if (isGranted) {
+                Toast.makeText(context, "Дозвіл на сповіщення надано!", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "Без цього дозволу ви не побачите статус імпорту", Toast.LENGTH_LONG).show()
+            }
+        }
+    )
+
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                isListenerEnabled = checkListenerEnabled(context)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    isPostNotificationsGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        isListenerEnabled = checkListenerEnabled(context)
+    }
     val isDark = when(themeMode) {
         1 -> false
         2 -> true
@@ -211,7 +279,12 @@ fun ExperimentalSettingsScreen(viewModel: MainViewModel, onDismiss: () -> Unit) 
                     }
                     Switch(
                         checked = notificationParserEnabled,
-                        onCheckedChange = { viewModel.setNotificationParserEnabled(it) },
+                        onCheckedChange = { isChecked ->
+                            viewModel.setNotificationParserEnabled(isChecked)
+                            if (isChecked && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !isPostNotificationsGranted) {
+                                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                        },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
                             checkedTrackColor = Color(0xFFEF4444),
@@ -263,32 +336,106 @@ fun ExperimentalSettingsScreen(viewModel: MainViewModel, onDismiss: () -> Unit) 
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "Крок 1: Доступ до сповіщень Android",
+                        text = "Крок 1: Дозволи системи",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = textColor
                     )
                     Text(
-                        text = "Щоб додаток міг зчитувати транзакції, необхідно надати системний доступ до прослуховування сповіщень для нашого додатку.",
+                        text = "Для повноцінної роботи функції потрібні два системні дозволи: читання сповіщень банків та показ звітів про авто-імпорт.",
                         fontSize = 12.sp,
                         color = subtleText,
                         lineHeight = 16.sp
                     )
-                    Button(
-                        onClick = {
-                            try {
-                                context.startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS").apply {
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                })
-                            } catch (e: Exception) {
-                                Toast.makeText(context, "Не вдалося відкрити налаштування", Toast.LENGTH_SHORT).show()
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().testTag("grant_notification_access"),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
-                        shape = RoundedCornerShape(10.dp)
+                    
+                    // Permission 1 status
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Надати доступ у налаштуваннях", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "1. Читання сповіщень банків:",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = textColor,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(if (isListenerEnabled) Color(0xFF10B981).copy(alpha = 0.15f) else Color(0xFFEF4444).copy(alpha = 0.15f))
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = if (isListenerEnabled) "Надано" else "Не надано",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isListenerEnabled) Color(0xFF10B981) else Color(0xFFEF4444)
+                            )
+                        }
+                    }
+
+                    // Permission 2 status
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "2. Показ звітів про авто-імпорт:",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = textColor,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(if (isPostNotificationsGranted) Color(0xFF10B981).copy(alpha = 0.15f) else Color(0xFFEF4444).copy(alpha = 0.15f))
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = if (isPostNotificationsGranted) "Надано" else "Не надано",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isPostNotificationsGranted) Color(0xFF10B981) else Color(0xFFEF4444)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    if (!isListenerEnabled) {
+                        Button(
+                            onClick = {
+                                try {
+                                    context.startActivity(Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS").apply {
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    })
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Не вдалося відкрити налаштування", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().testTag("grant_notification_access"),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text("1. Надати доступ до сповіщень", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !isPostNotificationsGranted) {
+                        Button(
+                            onClick = {
+                                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            },
+                            modifier = Modifier.fillMaxWidth().testTag("grant_push_access"),
+                            colors = ButtonDefaults.buttonColors(containerColor = if (isListenerEnabled) Color(0xFFEF4444) else MaterialTheme.colorScheme.secondary),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text("2. Дозволити показ сповіщень", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
 
