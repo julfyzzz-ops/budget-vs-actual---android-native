@@ -30,6 +30,8 @@ import com.example.data.model.Account
 import com.example.data.model.AccountType
 import com.example.ui.utils.IconsHelper
 import com.example.ui.viewmodels.MainViewModel
+import com.example.ui.theme.GlassTheme
+import com.example.ui.theme.GlassTheme.glassyCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,17 +70,17 @@ fun AddEditAccountSheet(
     val isSystemDark = isSystemInDarkTheme()
     val isDark = when(themeMode) {
         1 -> false
-        2 -> true
+        2, 3 -> true
         else -> isSystemDark
     }
     
     val sheetBg = if (isDark) Color(0xFF1F2937) else Color.White
-    val inputBg = if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
+    val inputBg = if (themeMode == 3) Color(0x22111827) else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
     val inputTextColor = if (isDark) Color.White else Color(0xFF111827)
     val labelColor = if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)
 
     val textFieldColors = OutlinedTextFieldDefaults.colors(
-        unfocusedBorderColor = Color.Transparent,
+        unfocusedBorderColor = if (themeMode == 3) Color(0x33FFFFFF) else Color.Transparent,
         focusedBorderColor = MaterialTheme.colorScheme.primary,
         unfocusedContainerColor = inputBg,
         focusedContainerColor = inputBg,
@@ -103,13 +105,22 @@ fun AddEditAccountSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissInfo,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = sheetBg
+        containerColor = if (themeMode == 3) Color.Transparent else sheetBg
     ) {
-        Column(
-            modifier = Modifier
+        val sheetModifier = if (themeMode == 3) {
+            Modifier
+                .fillMaxWidth()
+                .glassyCard(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp, top = 16.dp)
+        } else {
+            Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 32.dp)
+        }
+        Column(
+            modifier = sheetModifier
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -127,7 +138,7 @@ fun AddEditAccountSheet(
                     onClick = onDismissInfo,
                     modifier = Modifier
                         .size(32.dp)
-                        .background(if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6), CircleShape)
+                        .background(if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6), CircleShape)
                 ) {
                     Icon(Icons.Filled.Close, contentDescription = "Закрити", modifier = Modifier.size(20.dp), tint = labelColor)
                 }
@@ -167,7 +178,11 @@ fun AddEditAccountSheet(
                 ExposedDropdownMenu(
                     expanded = typeExpanded,
                     onDismissRequest = { typeExpanded = false },
-                    modifier = Modifier.background(inputBg)
+                    modifier = if (themeMode == 3) {
+                        Modifier.glassyCard(RoundedCornerShape(12.dp))
+                    } else {
+                        Modifier.background(inputBg)
+                    }
                 ) {
                     types.forEach { selectionOption ->
                         DropdownMenuItem(
@@ -216,7 +231,11 @@ fun AddEditAccountSheet(
                         ExposedDropdownMenu(
                             expanded = currencyExpanded,
                             onDismissRequest = { currencyExpanded = false },
-                            modifier = Modifier.background(inputBg)
+                            modifier = if (themeMode == 3) {
+                                Modifier.glassyCard(RoundedCornerShape(12.dp))
+                            } else {
+                                Modifier.background(inputBg)
+                            }
                         ) {
                             currencies.forEach { selectionOption ->
                                 DropdownMenuItem(
@@ -263,8 +282,18 @@ fun AddEditAccountSheet(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else inputBg)
-                            .border(if (isSelected) 2.dp else 0.dp, if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent, RoundedCornerShape(12.dp))
+                            .background(
+                                if (isSelected) {
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+                                } else {
+                                    if (themeMode == 3) Color(0x11FFFFFF) else inputBg
+                                }
+                            )
+                            .border(
+                                width = if (isSelected) 2.dp else if (themeMode == 3) 1.dp else 0.dp,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else if (themeMode == 3) Color(0x33FFFFFF) else Color.Transparent,
+                                shape = RoundedCornerShape(12.dp)
+                            )
                             .clickable { selectedIcon = iconName },
                         contentAlignment = Alignment.Center
                     ) {
@@ -318,12 +347,20 @@ fun AddEditAccountSheet(
             
             // Hidden toggle
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(inputBg)
-                    .clickable { isHidden = !isHidden }
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier = if (themeMode == 3) {
+                    Modifier
+                        .fillMaxWidth()
+                        .glassyCard(RoundedCornerShape(12.dp))
+                        .clickable { isHidden = !isHidden }
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                } else {
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(inputBg)
+                        .clickable { isHidden = !isHidden }
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {

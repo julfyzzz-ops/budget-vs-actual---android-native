@@ -125,9 +125,9 @@ fun OverviewScreen(viewModel: MainViewModel, navController: NavController) {
 fun CustomMonthYearSelector(viewModel: MainViewModel, month: Int, year: Int, isDark: Boolean) {
     val themeMode by viewModel.themeMode.collectAsState()
     val cardBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
-    val textColor = if (isDark) Color(0xFFD1D5DB) else Color(0xFF4B5563)
+    val textColor = if (isDark) Color.White else Color(0xFF4B5563)
     val iconColor = if (isDark) Color(0xFF9CA3AF) else Color(0xFF4B5563)
-    val rippleColor = if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6)
+    val rippleColor = if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6)
     
     val monthNames = listOf("Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень")
     val monthName = monthNames.getOrNull(month) ?: ""

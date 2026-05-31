@@ -51,11 +51,11 @@ fun SettingsScreen(viewModel: MainViewModel, isExperimental: Boolean = false, on
     val isSystemDark = isSystemInDarkTheme()
     val isDark = when(themeMode) {
         1 -> false
-        2 -> true
+        2, 3 -> true
         else -> isSystemDark
     }
 
-    val sheetBg = if (isDark) Color(0xFF1F2937) else Color.White
+    val sheetBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
     val textColor = if (isDark) Color.White else Color(0xFF111827)
     val subtleText = if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)
     
@@ -88,7 +88,7 @@ fun SettingsScreen(viewModel: MainViewModel, isExperimental: Boolean = false, on
                 onClick = onDismiss,
                 modifier = Modifier
                     .size(36.dp)
-                    .background(if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6), CircleShape)
+                    .background(if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6), CircleShape)
             ) {
                 Icon(Icons.Filled.Close, contentDescription = "Закрити", tint = subtleText, modifier = Modifier.size(20.dp))
             }
@@ -107,9 +107,9 @@ fun SettingsScreen(viewModel: MainViewModel, isExperimental: Boolean = false, on
         ) {
             tabs.forEachIndexed { index, title ->
                 val isActive = selectedTab == index
-                val bgColor = if (isActive) (if (isDark) Color(0xFF374151) else Color.White) else Color.Transparent
+                val bgColor = if (isActive) (if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color.White) else Color.Transparent
                 val tabTextColor = if (isActive) Color(0xFF10B981) else subtleText
-                val borderModifier = if (isActive) Modifier.background(bgColor, RoundedCornerShape(16.dp)).border(1.dp, if(isDark) Color(0xFF4B5563) else Color(0xFFE5E7EB), RoundedCornerShape(16.dp))
+                val borderModifier = if (isActive) Modifier.background(bgColor, RoundedCornerShape(16.dp)).border(1.dp, if(themeMode == 3) Color(0x44FFFFFF) else if(isDark) Color(0xFF4B5563) else Color(0xFFE5E7EB), RoundedCornerShape(16.dp))
                                      else Modifier.background(bgColor, RoundedCornerShape(16.dp))
                 
                 Box(
@@ -150,10 +150,11 @@ fun RatesTabNew(viewModel: MainViewModel, isDark: Boolean, textColor: Color, sub
     var gbpRate by remember(gbp) { mutableStateOf(gbp.toString()) }
 
     val context = LocalContext.current
+    val themeMode by viewModel.themeMode.collectAsState()
     
-    val inputBg = if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
+    val inputBg = if (themeMode == 3) Color(0x22FFFFFF) else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
     val textFieldColors = OutlinedTextFieldDefaults.colors(
-        unfocusedBorderColor = Color.Transparent,
+        unfocusedBorderColor = if (themeMode == 3) Color(0x33FFFFFF) else Color.Transparent,
         focusedBorderColor = MaterialTheme.colorScheme.primary,
         unfocusedContainerColor = inputBg,
         focusedContainerColor = inputBg,
@@ -198,10 +199,10 @@ fun RatesTabNew(viewModel: MainViewModel, isDark: Boolean, textColor: Color, sub
 
 @Composable
 fun AppearanceTabNew(themeMode: Int, incognitoMode: Boolean, viewModel: MainViewModel, isDark: Boolean, textColor: Color, subtleText: Color) {
-    val borderColor = if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
-    val inputBg = if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
+    val borderColor = if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
+    val inputBg = if (themeMode == 3) Color(0x22FFFFFF) else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
     val activeBorder = Color(0xFF10B981)
-    val activeBg = if (isDark) Color(0xFF065F46) else Color(0xFFD1FAE5) // green highlight
+    val activeBg = if (themeMode == 3) Color(0x3310B981) else if (isDark) Color(0xFF065F46) else Color(0xFFD1FAE5) // green highlight
     val activeText = Color(0xFF10B981)
     
     val numberFormat by viewModel.numberFormat.collectAsState()
@@ -345,7 +346,8 @@ fun ExportTabNew(viewModel: MainViewModel, context: Context, isDark: Boolean, te
         }
     }
     
-    val inputBg = if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
+    val themeMode by viewModel.themeMode.collectAsState()
+    val inputBg = if (themeMode == 3) Color(0x22FFFFFF) else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
 
     Column {
         Text("Експорт зберігає всі ваші рахунки, транзакції, категорії та налаштування в єдиний текстовий файл формату JSON.", fontSize = 14.sp, color = subtleText)
@@ -356,7 +358,7 @@ fun ExportTabNew(viewModel: MainViewModel, context: Context, isDark: Boolean, te
                 onClick = { exportLauncher.launch("budget_backup.json") }, 
                 modifier = Modifier.weight(1f).height(48.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = if(isDark) Color(0xFF374151) else Color(0xFFE5E7EB), contentColor = textColor)
+                colors = ButtonDefaults.buttonColors(containerColor = if (themeMode == 3) Color(0x33FFFFFF) else if(isDark) Color(0xFF374151) else Color(0xFFE5E7EB), contentColor = textColor)
             ) {
                 Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
@@ -375,7 +377,7 @@ fun ExportTabNew(viewModel: MainViewModel, context: Context, isDark: Boolean, te
                 }, 
                 modifier = Modifier.weight(1f).height(48.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = if(isDark) Color(0xFF374151) else Color(0xFFE5E7EB), contentColor = textColor)
+                colors = ButtonDefaults.buttonColors(containerColor = if (themeMode == 3) Color(0x33FFFFFF) else if(isDark) Color(0xFF374151) else Color(0xFFE5E7EB), contentColor = textColor)
             ) {
                 Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
@@ -415,7 +417,7 @@ fun ExportTabNew(viewModel: MainViewModel, context: Context, isDark: Boolean, te
                     copied = true
                 },
                 modifier = Modifier.align(Alignment.TopEnd).size(36.dp),
-                containerColor = if(isDark) Color(0xFF374151) else Color(0xFFE5E7EB),
+                containerColor = if (themeMode == 3) Color(0x33FFFFFF) else if(isDark) Color(0xFF374151) else Color(0xFFE5E7EB),
                 contentColor = textColor,
                 elevation = FloatingActionButtonDefaults.elevation(0.dp)
             ) {
@@ -453,8 +455,9 @@ fun ImportTabNew(viewModel: MainViewModel, context: Context, isDark: Boolean, te
         }
     }
     
-    val inputBg = if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
-    val borderColor = if (isDark) Color(0xFF4B5563) else Color(0xFFD1D5DB)
+    val themeMode by viewModel.themeMode.collectAsState()
+    val inputBg = if (themeMode == 3) Color(0x22FFFFFF) else if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
+    val borderColor = if (themeMode == 3) Color(0x44FFFFFF) else if (isDark) Color(0xFF4B5563) else Color(0xFFD1D5DB)
 
     Column {
         // Warning Banner

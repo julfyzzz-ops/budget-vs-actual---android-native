@@ -53,6 +53,10 @@ import com.example.ui.viewmodels.MainViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
+import androidx.compose.ui.graphics.Brush
+import com.example.ui.theme.GlassTheme
+import com.example.ui.theme.GlassTheme.glassyCard
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTransactionSheet(
@@ -120,7 +124,7 @@ fun AddTransactionSheet(
     val isSystemDark = isSystemInDarkTheme()
     val isDark = when(themeMode) {
         1 -> false
-        2 -> true
+        2, 3 -> true
         else -> isSystemDark
     }
 
@@ -133,14 +137,23 @@ fun AddTransactionSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissInfo,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = bgColor,
+        containerColor = if (themeMode == 3) Color.Transparent else bgColor,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
     ) {
-        Column(
-            modifier = Modifier
+        val rootModifier = if (themeMode == 3) {
+            Modifier
+                .fillMaxWidth()
+                .glassyCard(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp, top = 16.dp)
+        } else {
+            Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 32.dp)
+        }
+        Column(
+            modifier = rootModifier
         ) {
             // Header
             Row(
@@ -158,7 +171,7 @@ fun AddTransactionSheet(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6))
+                        .background(if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6))
                         .clickable(onClick = onDismissInfo),
                     contentAlignment = Alignment.Center
                 ) {
@@ -169,7 +182,7 @@ fun AddTransactionSheet(
             Spacer(modifier = Modifier.height(24.dp))
             
             // Segmented Control
-            val segmentedBg = if (isDark) Color(0xFF111827) else Color(0xFFF3F4F6)
+            val segmentedBg = if (themeMode == 3) Color(0x22111827) else if (isDark) Color(0xFF111827) else Color(0xFFF3F4F6)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -188,11 +201,15 @@ fun AddTransactionSheet(
                         TransactionType.INCOME -> Color(0xFF10B981)
                         TransactionType.TRANSFER -> Color(0xFF3B82F6)
                     }
-                    val bg = if (isSelected) (if(isDark) Color(0xFF374151) else Color.White) else Color.Transparent
+                    val bg = if (isSelected) {
+                        if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color.White
+                    } else {
+                        Color.Transparent
+                    }
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .shadow(if (isSelected) 1.dp else 0.dp, RoundedCornerShape(10.dp))
+                            .shadow(if (isSelected && themeMode != 3) 1.dp else 0.dp, RoundedCornerShape(10.dp))
                             .clip(RoundedCornerShape(10.dp))
                             .background(bg)
                             .clickable {
@@ -223,7 +240,8 @@ fun AddTransactionSheet(
                     account = selectedAccount,
                     accounts = accounts,
                     onAccountSelected = { selectedAccount = it },
-                    isDark = isDark
+                    isDark = isDark,
+                    themeMode = themeMode
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 
@@ -233,7 +251,8 @@ fun AddTransactionSheet(
                     onAmountChange = { amountValue = it },
                     currency = selectedAccount?.currency ?: "UAH",
                     isDark = isDark,
-                    onFocusChange = { isAmountFocused = it }
+                    onFocusChange = { isAmountFocused = it },
+                    themeMode = themeMode
                 )
             } else {
                 // Transfer Accounts
@@ -248,7 +267,8 @@ fun AddTransactionSheet(
                             accounts = accounts,
                             onAccountSelected = { selectedAccount = it },
                             isDark = isDark,
-                            label = "З рахунку"
+                            label = "З рахунку",
+                            themeMode = themeMode
                         )
                     }
                     Box(modifier = Modifier.padding(horizontal = 8.dp).padding(top = 16.dp)) {
@@ -260,7 +280,8 @@ fun AddTransactionSheet(
                             accounts = accounts,
                             onAccountSelected = { selectedTargetAccount = it },
                             isDark = isDark,
-                            label = "На рахунок"
+                            label = "На рахунок",
+                            themeMode = themeMode
                         )
                     }
                 }
@@ -277,16 +298,17 @@ fun AddTransactionSheet(
                             currency = selectedAccount?.currency ?: "",
                             isDark = isDark,
                             onFocusChange = { isAmountFocused = it },
-                            hideCurrencyPrefix = true
+                            hideCurrencyPrefix = true,
+                            themeMode = themeMode
                         )
                         
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // A simple divider/exchange rate mock
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                            HorizontalDivider(modifier = Modifier.weight(1f), color = if(isDark) Color(0xFF374151) else Color(0xFFE5E7EB))
+                            HorizontalDivider(modifier = Modifier.weight(1f), color = if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB))
                             Text(" Курс обміну ", fontSize = 12.sp, color = mutedColor)
-                            HorizontalDivider(modifier = Modifier.weight(1f), color = if(isDark) Color(0xFF374151) else Color(0xFFE5E7EB))
+                            HorizontalDivider(modifier = Modifier.weight(1f), color = if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB))
                         }
                         
                         Spacer(modifier = Modifier.height(16.dp))
@@ -298,7 +320,8 @@ fun AddTransactionSheet(
                             currency = selectedTargetAccount?.currency ?: "",
                             isDark = isDark,
                             onFocusChange = { isReceiverFocused = it },
-                            hideCurrencyPrefix = true
+                            hideCurrencyPrefix = true,
+                            themeMode = themeMode
                         )
                     }
                 } else {
@@ -307,7 +330,8 @@ fun AddTransactionSheet(
                         onAmountChange = { amountValue = it },
                         currency = selectedAccount?.currency ?: "UAH",
                         isDark = isDark,
-                        onFocusChange = { isAmountFocused = it }
+                        onFocusChange = { isAmountFocused = it },
+                        themeMode = themeMode
                     )
                 }
             }
@@ -363,7 +387,8 @@ fun AddTransactionSheet(
                             }
                         }
                     },
-                    isDark = isDark
+                    isDark = isDark,
+                    themeMode = themeMode
                 )
             }
 
@@ -387,12 +412,20 @@ fun AddTransactionSheet(
                         val catBaseColor = Color(cat.color.toInt())
                         
                         Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(if (isSelected) catBaseColor.copy(alpha = 0.1f) else Color.Transparent)
-                                .border(1.dp, if (isSelected) catBaseColor else (if(isDark) Color(0xFF374151) else Color(0xFFE5E7EB)), RoundedCornerShape(12.dp))
-                                .clickable { selectedCategory = cat }
-                                .padding(12.dp),
+                            modifier = if (themeMode == 3) {
+                                Modifier
+                                    .glassyCard(RoundedCornerShape(12.dp))
+                                    .background(if (isSelected) catBaseColor.copy(alpha = 0.15f) else Color.Transparent)
+                                    .clickable { selectedCategory = cat }
+                                    .padding(12.dp)
+                            } else {
+                                Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (isSelected) catBaseColor.copy(alpha = 0.1f) else Color.Transparent)
+                                    .border(1.dp, if (isSelected) catBaseColor else (if(isDark) Color(0xFF374151) else Color(0xFFE5E7EB)), RoundedCornerShape(12.dp))
+                                    .clickable { selectedCategory = cat }
+                                    .padding(12.dp)
+                            },
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -428,26 +461,48 @@ fun AddTransactionSheet(
                     Text("Дата", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = textColor)
                     Spacer(modifier = Modifier.height(8.dp))
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(if (isDark) Color(0xFF374151) else Color(0xFFF9FAFB))
-                            .clickable {
-                                val cal = Calendar.getInstance()
-                                cal.time = selectedDate
-                                DatePickerDialog(
-                                    context,
-                                    { _, y, m, d ->
-                                        val newCal = Calendar.getInstance()
-                                        newCal.set(y, m, d)
-                                        selectedDate = newCal.time
-                                    },
-                                    cal.get(Calendar.YEAR),
-                                    cal.get(Calendar.MONTH),
-                                    cal.get(Calendar.DAY_OF_MONTH)
-                                ).show()
-                            }
-                            .padding(horizontal = 16.dp, vertical = 14.dp)
+                        modifier = if (themeMode == 3) {
+                            Modifier
+                                .fillMaxWidth()
+                                .glassyCard(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    val cal = Calendar.getInstance()
+                                    cal.time = selectedDate
+                                    DatePickerDialog(
+                                        context,
+                                        { _, y, m, d ->
+                                            val newCal = Calendar.getInstance()
+                                            newCal.set(y, m, d)
+                                            selectedDate = newCal.time
+                                        },
+                                        cal.get(Calendar.YEAR),
+                                        cal.get(Calendar.MONTH),
+                                        cal.get(Calendar.DAY_OF_MONTH)
+                                    ).show()
+                                }
+                                .padding(horizontal = 16.dp, vertical = 14.dp)
+                        } else {
+                            Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isDark) Color(0xFF374151) else Color(0xFFF9FAFB))
+                                .clickable {
+                                    val cal = Calendar.getInstance()
+                                    cal.time = selectedDate
+                                    DatePickerDialog(
+                                        context,
+                                        { _, y, m, d ->
+                                            val newCal = Calendar.getInstance()
+                                            newCal.set(y, m, d)
+                                            selectedDate = newCal.time
+                                        },
+                                        cal.get(Calendar.YEAR),
+                                        cal.get(Calendar.MONTH),
+                                        cal.get(Calendar.DAY_OF_MONTH)
+                                    ).show()
+                                }
+                                .padding(horizontal = 16.dp, vertical = 14.dp)
+                        }
                     ) {
                         Text(dateFormat.format(selectedDate), fontSize = 16.sp, color = textColor)
                     }
@@ -459,6 +514,9 @@ fun AddTransactionSheet(
             // Note
             Text("Нотатка", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = textColor)
             Spacer(modifier = Modifier.height(8.dp))
+            val noteContainerColor = if (themeMode == 3) Color(0x33111827) else if (isDark) Color(0xFF374151) else Color(0xFFF9FAFB)
+            val noteBorderColor = if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
+
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
@@ -467,9 +525,9 @@ fun AddTransactionSheet(
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF3B82F6),
-                    unfocusedBorderColor = if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB),
-                    focusedContainerColor = if (isDark) Color(0xFF374151) else Color(0xFFF9FAFB),
-                    unfocusedContainerColor = if (isDark) Color(0xFF374151) else Color(0xFFF9FAFB),
+                    unfocusedBorderColor = noteBorderColor,
+                    focusedContainerColor = noteContainerColor,
+                    unfocusedContainerColor = noteContainerColor,
                     focusedTextColor = textColor,
                     unfocusedTextColor = textColor
                 )
@@ -519,7 +577,8 @@ fun AccountSelector(
     accounts: List<Account>,
     onAccountSelected: (Account) -> Unit,
     isDark: Boolean,
-    label: String? = null
+    label: String? = null,
+    themeMode: Int = 0
 ) {
     var expanded by remember { mutableStateOf(false) }
     val mutedColor = if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)
@@ -531,12 +590,20 @@ fun AccountSelector(
         }
         Box {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(if (isDark) Color(0xFF374151) else Color(0xFFF9FAFB))
-                    .clickable { expanded = true }
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                modifier = if (themeMode == 3) {
+                    Modifier
+                        .fillMaxWidth()
+                        .glassyCard(RoundedCornerShape(12.dp))
+                        .clickable { expanded = true }
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                } else {
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (isDark) Color(0xFF374151) else Color(0xFFF9FAFB))
+                        .clickable { expanded = true }
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -554,7 +621,11 @@ fun AccountSelector(
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(if(isDark) Color(0xFF1F2937) else Color.White)
+                modifier = if (themeMode == 3) {
+                    Modifier.glassyCard(RoundedCornerShape(12.dp))
+                } else {
+                    Modifier.background(if(isDark) Color(0xFF1F2937) else Color.White)
+                }
             ) {
                 accounts.forEach { acc ->
                     DropdownMenuItem(
@@ -577,7 +648,8 @@ fun AmountInput(
     currency: String,
     isDark: Boolean,
     onFocusChange: (Boolean) -> Unit,
-    hideCurrencyPrefix: Boolean = true
+    hideCurrencyPrefix: Boolean = true,
+    themeMode: Int = 0
 ) {
     val textColor = if (isDark) Color.White else Color(0xFF111827)
     val mutedColor = if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)
@@ -650,16 +722,18 @@ fun AmountInput(
             }
         )
     }
-    HorizontalDivider(color = if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB), thickness = 2.dp, modifier = Modifier.padding(top = 4.dp))
+    val dividerColor = if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB)
+    HorizontalDivider(color = dividerColor, thickness = 2.dp, modifier = Modifier.padding(top = 4.dp))
 }
 
 @Composable
 fun InlineCalculator(
     onOperatorClick: (String) -> Unit,
     onEqualClick: () -> Unit,
-    isDark: Boolean
+    isDark: Boolean,
+    themeMode: Int = 0
 ) {
-    val btnBg = if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6)
+    val btnBg = if (themeMode == 3) Color(0x22FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6)
     val btnText = if (isDark) Color.White else Color(0xFF111827)
     val ops = listOf("+", "-", "*", "/", "%")
     

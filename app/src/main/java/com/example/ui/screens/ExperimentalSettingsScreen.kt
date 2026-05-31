@@ -118,14 +118,14 @@ fun ExperimentalSettingsScreen(viewModel: MainViewModel, onDismiss: () -> Unit) 
     }
     val isDark = when(themeMode) {
         1 -> false
-        2 -> true
+        2, 3 -> true
         else -> isSystemDark
     }
 
-    val sheetBg = if (isDark) Color(0xFF1F2937) else Color.White
+    val sheetBg = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
     val textColor = if (isDark) Color.White else Color(0xFF111827)
     val subtleText = if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)
-    val cardBg = if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6)
+    val cardBg = if (themeMode == 3) Color(0x22111827) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6)
 
     var customPackageInput by remember { mutableStateOf("") }
     var showEditDialog by remember { mutableStateOf(false) }

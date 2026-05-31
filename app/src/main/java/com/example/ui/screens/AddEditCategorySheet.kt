@@ -29,6 +29,8 @@ import com.example.data.model.Category
 import com.example.data.model.TransactionType
 import com.example.ui.utils.IconsHelper
 import com.example.ui.viewmodels.MainViewModel
+import com.example.ui.theme.GlassTheme
+import com.example.ui.theme.GlassTheme.glassyCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,20 +75,29 @@ fun AddEditCategorySheet(
     val isSystemDark = isSystemInDarkTheme()
     val isDark = when(themeMode) {
         1 -> false
-        2 -> true
+        2, 3 -> true
         else -> isSystemDark
     }
 
     ModalBottomSheet(
         onDismissRequest = onDismissInfo,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = if (isDark) Color(0xFF1F2937) else Color.White
+        containerColor = if (themeMode == 3) Color.Transparent else if (isDark) Color(0xFF1F2937) else Color.White
     ) {
-        Column(
-            modifier = Modifier
+        val sheetModifier = if (themeMode == 3) {
+            Modifier
+                .fillMaxWidth()
+                .glassyCard(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp, top = 16.dp)
+        } else {
+            Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 32.dp)
+        }
+        Column(
+            modifier = sheetModifier
         ) {
             // Header
             Row(
@@ -104,7 +115,7 @@ fun AddEditCategorySheet(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6))
+                        .background(if (themeMode == 3) Color(0x33FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6))
                         .clickable(onClick = onDismissInfo),
                     contentAlignment = Alignment.Center
                 ) {
@@ -119,7 +130,7 @@ fun AddEditCategorySheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(44.dp)
-                    .background(if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6), RoundedCornerShape(12.dp))
+                    .background(if (themeMode == 3) Color(0x22111827) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6), RoundedCornerShape(12.dp))
                     .padding(4.dp)
             ) {
                 val isExpense = type == TransactionType.EXPENSE
@@ -130,7 +141,11 @@ fun AddEditCategorySheet(
                         .clip(RoundedCornerShape(8.dp))
                         .let { 
                             if (isExpense) {
-                                it.background(if (isDark) Color(0xFF1F2937) else Color.White).shadow(1.dp, RoundedCornerShape(8.dp))
+                                if (themeMode == 3) {
+                                    it.background(Color(0x33FFFFFF))
+                                } else {
+                                    it.background(if (isDark) Color(0xFF1F2937) else Color.White).shadow(1.dp, RoundedCornerShape(8.dp))
+                                }
                             } else it
                         }
                         .clickable { type = TransactionType.EXPENSE },
@@ -145,7 +160,11 @@ fun AddEditCategorySheet(
                         .clip(RoundedCornerShape(8.dp))
                         .let { 
                             if (!isExpense) {
-                                it.background(if (isDark) Color(0xFF1F2937) else Color.White).shadow(1.dp, RoundedCornerShape(8.dp))
+                                if (themeMode == 3) {
+                                    it.background(Color(0x33FFFFFF))
+                                } else {
+                                    it.background(if (isDark) Color(0xFF1F2937) else Color.White).shadow(1.dp, RoundedCornerShape(8.dp))
+                                }
                             } else it
                         }
                         .clickable { type = TransactionType.INCOME },
@@ -164,9 +183,11 @@ fun AddEditCategorySheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = if(isDark) Color(0xFF4B5563) else Color(0xFFE5E7EB),
+                    unfocusedBorderColor = if (themeMode == 3) Color(0x33FFFFFF) else if(isDark) Color(0xFF4B5563) else Color(0xFFE5E7EB),
                     focusedBorderColor = Color(0xFF10B981),
-                    focusedLabelColor = Color(0xFF10B981)
+                    focusedLabelColor = Color(0xFF10B981),
+                    unfocusedContainerColor = if (themeMode == 3) Color(0x22111827) else Color.Transparent,
+                    focusedContainerColor = if (themeMode == 3) Color(0x22111827) else Color.Transparent,
                 )
             )
             
@@ -180,9 +201,11 @@ fun AddEditCategorySheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = if(isDark) Color(0xFF4B5563) else Color(0xFFE5E7EB),
+                    unfocusedBorderColor = if (themeMode == 3) Color(0x33FFFFFF) else if(isDark) Color(0xFF4B5563) else Color(0xFFE5E7EB),
                     focusedBorderColor = Color(0xFF10B981),
-                    focusedLabelColor = Color(0xFF10B981)
+                    focusedLabelColor = Color(0xFF10B981),
+                    unfocusedContainerColor = if (themeMode == 3) Color(0x22111827) else Color.Transparent,
+                    focusedContainerColor = if (themeMode == 3) Color(0x22111827) else Color.Transparent,
                 )
             )
             
@@ -228,9 +251,17 @@ fun AddEditCategorySheet(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (isSelected) Color(0xFFD1FAE5) else (if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6)))
+                            .background(
+                                if (isSelected) {
+                                    if (themeMode == 3) Color(0x44D1FAE5) else Color(0xFFD1FAE5)
+                                } else {
+                                    if (themeMode == 3) Color(0x22FFFFFF) else if (isDark) Color(0xFF374151) else Color(0xFFF3F4F6)
+                                }
+                            )
                             .let {
-                                if (isSelected && !isDark) {
+                                if (themeMode == 3) {
+                                    it.border(1.dp, if (isSelected) Color(0xFF10B981) else Color(0x33FFFFFF), RoundedCornerShape(12.dp))
+                                } else if (isSelected && !isDark) {
                                     it.border(1.dp, Color(0xFF10B981), RoundedCornerShape(12.dp))
                                 } else it
                             }

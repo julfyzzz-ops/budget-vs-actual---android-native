@@ -20,6 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import com.example.ui.theme.GlassTheme
+import com.example.ui.theme.GlassTheme.glassyCard
 import com.example.ui.viewmodels.MainViewModel
 
 @Composable
@@ -62,6 +65,7 @@ fun HeaderMonthYearSelector(viewModel: MainViewModel) {
     val month by viewModel.currentMonth.collectAsState()
     val year by viewModel.currentYear.collectAsState()
     val isEditMode by viewModel.isEditMode.collectAsState()
+    val themeMode by viewModel.themeMode.collectAsState()
     
     val monthNames = listOf("Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень")
     
@@ -89,10 +93,17 @@ fun HeaderMonthYearSelector(viewModel: MainViewModel) {
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val surfaceModifier = if (themeMode == 3) {
+                Modifier
+                    .padding(top = 8.dp)
+                    .glassyCard(RoundedCornerShape(8.dp))
+            } else {
+                Modifier.padding(top = 8.dp)
+            }
             Surface(
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.padding(top = 8.dp)
+                shape = RoundedCornerShape(8.dp),
+                color = if (themeMode == 3) Color.Transparent else MaterialTheme.colorScheme.surfaceVariant,
+                modifier = surfaceModifier
             ) {
                 Row {
                     IconButton(onClick = { /* TODO Filter */ }) {
