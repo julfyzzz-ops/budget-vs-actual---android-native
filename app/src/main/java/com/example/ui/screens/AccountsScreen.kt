@@ -92,57 +92,74 @@ fun AccountsScreen(
     val bgColor = if (isDark) Color(0xFF111827) else Color(0xFFF9FAFB)
 
     Column(modifier = Modifier.fillMaxSize().background(bgColor)) {
-        // Top Bar
-        Row(
+        // Top Card Selector
+        val topCardBg = if (isDark) Color(0xFF1F2937) else Color.White
+        Box(
             modifier = Modifier
                 .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
                 .fillMaxWidth()
-                .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 0.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    text = "Бюджет",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isDark) Color.White else Color(0xFF111827)
-                )
-                Text(
-                    text = "v1.4.2 (31.05.2026 08:35)",
-                    fontSize = 11.sp,
-                    color = if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                // Red Bank Import Settings Button
-                IconButton(
-                    onClick = onOpenExperimentalSettings,
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = topCardBg),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Row(
                     modifier = Modifier
-                        .size(40.dp)
-                        .background(Color(0xFFEF4444), CircleShape)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Notifications,
-                        contentDescription = "Імпорт з банківських пушів",
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+                    Column {
+                        Text(
+                            text = "Бюджет",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isDark) Color.White else Color(0xFF111827)
+                        )
+                        Text(
+                            text = "v1.4.6 (31.05.2026 09:15)",
+                            fontSize = 11.sp,
+                            color = if (isDark) Color(0xFF9CA3AF) else Color(0xFF6B7280)
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Red Bank Import Settings Button
+                        IconButton(
+                            onClick = onOpenExperimentalSettings,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(Color(0xFFEF4444), CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Notifications,
+                                contentDescription = "Імпорт з банківських пушів",
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
 
-                // Regular Settings Button
-                IconButton(
-                    onClick = onOpenSettings,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB), CircleShape)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Settings,
-                        contentDescription = "Налаштування",
-                        tint = if (isDark) Color.White else Color(0xFF374151),
-                        modifier = Modifier.size(20.dp)
-                    )
+                        // Regular Settings Button
+                        IconButton(
+                            onClick = onOpenSettings,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(if (isDark) Color(0xFF374151) else Color(0xFFE5E7EB), CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Settings,
+                                contentDescription = "Налаштування",
+                                tint = if (isDark) Color.White else Color(0xFF374151),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
                 }
             }
         }

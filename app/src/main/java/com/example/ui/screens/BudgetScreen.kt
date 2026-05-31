@@ -225,38 +225,54 @@ fun BudgetGroup(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(if (isDark) Color(0xFF374151) else Color(0xFFF9FAFB))
+                    .background(if (isDark) Color(0x80374151) else Color(0x80F9FAFB))
                     .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Left Title block
-                val iconBg = if (isIncome) Color(0xFFD1FAE5) else Color(0xFFFEE2E2)
-                val iconTint = if (isIncome) Color(0xFF10B981) else Color(0xFFEF4444)
-                val headIcon = if (isIncome) Icons.AutoMirrored.Filled.TrendingUp else Icons.AutoMirrored.Filled.TrendingDown
-                
-                Box(
-                    modifier = Modifier.size(32.dp).clip(RoundedCornerShape(8.dp)).background(iconBg),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(headIcon, contentDescription = null, tint = iconTint, modifier = Modifier.size(16.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val iconBg = if (isIncome) Color(0x1A10B981) else Color(0x1AEF4444)
+                    val iconTint = if (isIncome) Color(0xFF10B981) else Color(0xFFEF4444)
+                    val headIcon = if (isIncome) Icons.AutoMirrored.Filled.TrendingUp else Icons.AutoMirrored.Filled.TrendingDown
+                    
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(iconBg),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(headIcon, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = title,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = if (isDark) Color.White else Color(0xFF111827)
+                        )
+                        Text(
+                            text = "${categories.size} " + (if (isIncome) "категорій доходу" else "категорій витрат"),
+                            fontSize = 11.sp,
+                            color = Color(0xFF9CA3AF)
+                        )
+                    }
                 }
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = title,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isDark) Color.White else Color(0xFF111827)
-                )
                 
-                Spacer(modifier = Modifier.weight(1f))
-                
-                // Right Total
-                Text(
-                    text = CurrencyUtils.formatAmount(total, "", incognito),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isDark) Color.White else Color(0xFF111827)
-                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = CurrencyUtils.formatAmount(total, "", incognito),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = if (isDark) Color.White else Color(0xFF111827)
+                    )
+                    Text(
+                        text = "заплановано",
+                        fontSize = 11.sp,
+                        color = Color(0xFF9CA3AF)
+                    )
+                }
             }
             
             HorizontalDivider(color = borderColor)

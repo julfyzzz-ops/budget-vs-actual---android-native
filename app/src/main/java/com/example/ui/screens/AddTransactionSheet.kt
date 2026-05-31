@@ -101,6 +101,15 @@ fun AddTransactionSheet(
             }
         }
     }
+
+    LaunchedEffect(accounts) {
+        if (selectedAccount == null && accounts.isNotEmpty()) {
+            selectedAccount = accounts.find { it.id == (transactionToEdit?.accountId ?: draft?.accountId) } ?: accounts.firstOrNull()
+        }
+        if (selectedTargetAccount == null && transactionToEdit?.receiverAccountId != null) {
+            selectedTargetAccount = accounts.find { it.id == transactionToEdit.receiverAccountId }
+        }
+    }
     
     var selectedDate by remember { mutableStateOf(transactionToEdit?.timestamp?.let { Date(it) } ?: Date()) }
 
@@ -309,8 +318,8 @@ fun AddTransactionSheet(
                     onOperatorClick = { op ->
                         if (isReceiverFocused) {
                             val currentText = receiverAmountValue.text
-                            val selectionStart = receiverAmountValue.selection.start
-                            val selectionEnd = receiverAmountValue.selection.end
+                            val selectionStart = receiverAmountValue.selection.start.coerceIn(0, currentText.length)
+                            val selectionEnd = receiverAmountValue.selection.end.coerceIn(0, currentText.length)
                             val newText = if (selectionStart >= 0 && selectionEnd >= 0) {
                                 currentText.substring(0, selectionStart) + op + currentText.substring(selectionEnd)
                             } else {
@@ -323,8 +332,8 @@ fun AddTransactionSheet(
                             )
                         } else {
                             val currentText = amountValue.text
-                            val selectionStart = amountValue.selection.start
-                            val selectionEnd = amountValue.selection.end
+                            val selectionStart = amountValue.selection.start.coerceIn(0, currentText.length)
+                            val selectionEnd = amountValue.selection.end.coerceIn(0, currentText.length)
                             val newText = if (selectionStart >= 0 && selectionEnd >= 0) {
                                 currentText.substring(0, selectionStart) + op + currentText.substring(selectionEnd)
                             } else {
@@ -471,21 +480,20 @@ fun AddTransactionSheet(
             Button(
                 onClick = {
                     val evaluatedAmount = evaluateMath(amountValue.text) ?: 0.0
-                    val finalAmt = if (selectedType == TransactionType.TRANSFER) Math.abs(evaluatedAmount) else evaluatedAmount
                     
-                    if (finalAmt != 0.0 && selectedAccount != null) {
+                    if (evaluatedAmount != 0.0 && selectedAccount != null) {
                         val validCategory = selectedType == TransactionType.TRANSFER || selectedCategory != null
                         if (validCategory) {
                             val targetAmount = evaluateMath(receiverAmountValue.text) ?: 0.0
                             
                             val tx = TransactionEntity(
                                 id = transactionToEdit?.id ?: 0,
-                                amount = finalAmt,
+                                amount = evaluatedAmount,
                                 currency = selectedAccount?.currency ?: "UAH",
                                 accountId = selectedAccount!!.id,
                                 categoryId = selectedCategory?.id ?: 0,
                                 receiverAccountId = if (selectedType == TransactionType.TRANSFER) selectedTargetAccount?.id else null,
-                                receiverAmount = if (selectedType == TransactionType.TRANSFER && selectedAccount?.currency != selectedTargetAccount?.currency) Math.abs(targetAmount).takeIf { it > 0 } else null,
+                                receiverAmount = if (selectedType == TransactionType.TRANSFER && selectedAccount?.currency != selectedTargetAccount?.currency) targetAmount.takeIf { it != 0.0 } else null,
                                 type = selectedType,
                                 timestamp = selectedDate.time,
                                 note = note
@@ -712,13 +720,21 @@ fun evaluateMath(expression: String): Double? {
 
         if (tokens.isEmpty()) return null
 
+        if (tokens.isNotEmpty() && (tokens[0] == "-" || tokens[0] == "+")) {
+            tokens.add(0, "0")
+        }
+
         // Pass 1: percentages
         var i = 0
         while (i < tokens.size) {
             if (tokens[i] == "%") {
-                val left = tokens[i - 1].toDoubleOrNull() ?: 1.0
-                tokens[i - 1] = (left / 100.0).toString()
-                tokens.removeAt(i)
+                if (i > 0) {
+                    val left = tokens[i - 1].toDoubleOrNull() ?: 1.0
+                    tokens[i - 1] = (left / 100.0).toString()
+                    tokens.removeAt(i)
+                } else {
+                    tokens.removeAt(i)
+                }
             } else {
                 i++
             }
@@ -729,12 +745,16 @@ fun evaluateMath(expression: String): Double? {
         while (i < tokens.size) {
             val token = tokens[i]
             if (token == "*" || token == "/") {
-                val left = tokens[i - 1].toDoubleOrNull() ?: 0.0
-                val right = tokens[i + 1].toDoubleOrNull() ?: 0.0
-                val res = if (token == "*") left * right else if (right != 0.0) left / right else 0.0
-                tokens[i - 1] = res.toString()
-                tokens.removeAt(i)
-                tokens.removeAt(i)
+                if (i > 0 && i + 1 < tokens.size) {
+                    val left = tokens[i - 1].toDoubleOrNull() ?: 0.0
+                    val right = tokens[i + 1].toDoubleOrNull() ?: 0.0
+                    val res = if (token == "*") left * right else if (right != 0.0) left / right else 0.0
+                    tokens[i - 1] = res.toString()
+                    tokens.removeAt(i)
+                    tokens.removeAt(i)
+                } else {
+                    i++
+                }
             } else {
                 i++
             }
@@ -745,18 +765,22 @@ fun evaluateMath(expression: String): Double? {
         while (i < tokens.size) {
             val token = tokens[i]
             if (token == "+" || token == "-") {
-                val left = tokens[i - 1].toDoubleOrNull() ?: 0.0
-                val right = tokens[i + 1].toDoubleOrNull() ?: 0.0
-                val res = if (token == "+") left + right else left - right
-                tokens[i - 1] = res.toString()
-                tokens.removeAt(i)
-                tokens.removeAt(i)
+                if (i > 0 && i + 1 < tokens.size) {
+                    val left = tokens[i - 1].toDoubleOrNull() ?: 0.0
+                    val right = tokens[i + 1].toDoubleOrNull() ?: 0.0
+                    val res = if (token == "+") left + right else left - right
+                    tokens[i - 1] = res.toString()
+                    tokens.removeAt(i)
+                    tokens.removeAt(i)
+                } else {
+                    i++
+                }
             } else {
                 i++
             }
         }
 
-        return tokens[0].toDoubleOrNull()
+        return tokens.firstOrNull()?.toDoubleOrNull()
     } catch (e: Exception) {
         return null
     }
