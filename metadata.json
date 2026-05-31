@@ -1,0 +1,6 @@
+{
+  "name": "Budget vs actual - new",
+  "description": "A comprehensive offline budget tracker with multi-currency support, incognito mode, and detailed account/category management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
